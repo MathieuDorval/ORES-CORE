@@ -101,11 +101,20 @@ Stop relying on messy "Swiss cheese" underground generation. Ores Core uses a so
 
 ---
 
-## 🏷️ Common Tags & Compatibility
+## 🏷️ Common Tags
 
 Every item and block (from simple ingots to complex Mekanism slurries) is automatically registered into **Common Tags** (`#c`). This ensures that your recipes and machines are universally compatible.
 
 > 📚 **Check the [Full Supported Content List](https://mathieudorval.github.io/ORES-CORE/tools/material_reference.html)** for a complete reference of the 90+ materials and their specific tag paths.
+
+---
+
+## 🧩 Compatibility
+
+Ores Core acts as a universal bridge. Native support is built-in for major tech mods, ensuring all materials can be processed through their machines without extra setup:
+
+*   **⚙️ Mekanism:** Full processing chain support (Slurries, Crystals, Shards, Clumps, Dirty Dusts, Dusts) via **Chemical Dissolution**, **Washer**, **Crystallizer**, and **Combiner**.
+*   **🚂 Create:** Automated recipes for **Crushing Wheels**, **Milling**, and **Pressing** are included out of the box.
 
 ---
 
