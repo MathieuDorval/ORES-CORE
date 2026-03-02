@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ores Core | Modder Registry Tool</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #818cf8;
+            --primary-glow: rgba(129, 140, 248, 0.4);
+            --secondary: #c084fc;
+            --bg: #0b0f1a;
+            --card-bg: rgba(30, 41, 59, 1);
+            --text: #f8fafc;
+            --text-dim: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
+            --accent: #fbbf24;
+            --danger: #f43f5e;
+            --success: #10b981;
+        }
+        * { box-sizing: border-box; transition: all 0.1s ease; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(129, 140, 248, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(192, 132, 252, 0.12) 0%, transparent 40%);
+            color: var(--text);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        nav {
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(11, 15, 26, 0.8);
+        }
+        .logo { 
+            font-size: 1.4rem; 
+            font-weight: 800; 
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); 
+            -webkit-background-clip: text; 
+            background-clip: text;
+            -webkit-text-fill-color: transparent; 
+            text-decoration: none;
+        }
+        .nav-links { display: flex; gap: 1.5rem; }
+        .nav-links a { 
+            color: var(--text-dim); 
+            text-decoration: none; 
+            font-weight: 600; 
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+        .nav-links a:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+        .nav-links a.active { color: var(--primary); background: rgba(129, 140, 248, 0.1); }
+        header {
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+        main {
+            display: flex;
+            flex: 1;
+            min-height: 0; 
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+        .json-pane {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid var(--border);
+            transition: width 0.3s ease-in-out, opacity 0.3s;
+            width: 400px;
+            min-width: 0;
+            flex-shrink: 0;
+            overflow: visible;
+        }
+        .json-pane.collapsed {
+            width: 0 !important;
+            border-left: none;
+        }
+        .toggle-json {
+            position: absolute;
+            left: -30px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 30px;
+            height: 60px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-right: none;
+            border-radius: 8px 0 0 8px;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+        }
+        .toggle-json:hover { color: var(--primary); background: rgba(0,0,0,0.4); }
+        @media (max-width: 1200px) {
+            .config-panel { flex-direction: column; overflow-y: auto; }
+            .mat-list-side { width: 100%; min-width: 100%; height: 300px; border-right: none; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+            .mat-detail-side { overflow-y: visible; flex: none; height: auto; }
+            .json-pane { position: fixed; right: 0; top: 120px; bottom: 0; z-index: 2000; height: auto; background: var(--bg); }
+        }
+        img, a {
+            -webkit-user-drag: none;
+        }
+        .atlas-icon {
+            display: inline-block;
+            background-image: url('ores_content_overview.png');
+            background-repeat: no-repeat;
+            image-rendering: pixelated;
+            width: 16px;
+            height: 16px;
+        }
+        .mat-row .atlas-icon { transform: scale(1.375); transform-origin: left center; margin-right: 6px; flex-shrink: 0; }
+        .opt-card .atlas-icon { transform: scale(2); transform-origin: center top; margin-bottom: 24px; flex-shrink: 0; }
+        .summary-chip .atlas-icon { transform: scale(0.875); transform-origin: left center; margin-right: -2px; }
+        .config-panel { 
+            display: flex; 
+            flex-direction: column; 
+            border-right: 1px solid var(--border); 
+            height: 100%; 
+            overflow: hidden; 
+            flex: 1;
+            min-width: 0;
+        }
+        .tabs { display: flex; padding: 0.8rem 2rem 0; gap: 0; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.2); flex-shrink: 0; }
+        .tab { flex: 1; text-align: center; padding: 1rem; cursor: pointer; border-radius: 8px 8px 0 0; font-weight: 600; color: var(--text-dim); border-bottom: 2px solid transparent; }
+        .tab.active { color: var(--primary); background: rgba(129, 140, 248, 0.05); border-bottom: 2px solid var(--primary); }
+        .tab-content { flex: 1; overflow: hidden; display: none; }
+        .tab-content.active { display: flex; }
+        .material-layout { 
+            display: flex;
+            width: 100%; 
+            height: 100%; 
+            overflow: hidden; 
+            position: relative; 
+        }
+        .mat-list-side { 
+            border-right: 1px solid var(--border); 
+            display: flex; 
+            flex-direction: column; 
+            background: rgba(0,0,0,0.1); 
+            height: 100%; 
+            width: 320px;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 5;
+        }
+        .search-area { 
+            padding: 1.2rem; 
+            background: rgba(0,0,0,0.2); 
+            display: flex; 
+            gap: 8px;
+            align-items: center;
+        }
+        .search-area input { 
+            flex: 1; 
+            background: var(--card-bg); 
+            border: 1px solid var(--border); 
+            color: white; 
+            padding: 0.8rem 1.2rem; 
+            border-radius: 12px; 
+            font-size: 0.9rem; 
+        }
+        .mat-scroll { flex: 1; overflow-y: auto; padding: 0.5rem; }
+        .mat-row { padding: 0.6rem 1rem; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 0.8rem; font-size: 0.9rem; color: var(--text-dim); margin-bottom: 2px; }
+        .mat-row:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+        .mat-row.active { background: var(--primary); color: white; font-weight: 600; }
+        .mat-row.has-data::after { content: '●'; margin-left: auto; font-size: 0.6rem; color: var(--success); }
+        .mat-row img { width: 22px; height: 22px; image-rendering: pixelated; }
+        .mat-detail-side { padding: 2rem; overflow-y: auto; height: 100%; flex: 1; position: relative; z-index: 50; }
+        .detail-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 2rem; 
+            flex-wrap: wrap; 
+            gap: 1rem; 
+            position: sticky; 
+            top: -2rem; 
+            background: var(--bg); 
+            z-index: 50; 
+            padding: 1rem 0; 
+            border-bottom: 1px solid var(--border);
+        }
+        .section-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--primary); margin: 2rem 0 1rem; font-weight: 800; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+        .options-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; user-select: none; -webkit-user-select: none; }
+        .opt-card { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 10px; padding: 0.8rem; display: flex; flex-direction: column; align-items: center; gap: 0.8rem; cursor: pointer; text-align: center; position: relative; z-index: 1; }
+        .opt-card:hover { border-color: var(--primary); background: rgba(129, 140, 248, 0.05); z-index: 2500; overflow: visible; }
+        .opt-card.active { border-color: var(--primary); background: rgba(129, 140, 248, 0.15); box-shadow: 0 0 15px var(--primary-glow); }
+        .opt-card img { width: 32px; height: 32px; image-rendering: pixelated; }
+        .opt-card span { font-size: 0.75rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
+        .opt-card .tier-selector { width: 100%; margin-top: 0.5rem; background: var(--bg); border: 1px solid var(--border); color: white; border-radius: 4px; font-size: 0.7rem; padding: 2px; }
+        .ore-gen-box { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 1.2rem 2.5rem; border-radius: 12px; display: flex; align-items: center; gap: 1.2rem; cursor: pointer; font-weight: 800; font-size: 1.1rem; color: var(--success); position: relative; }
+        .ore-gen-box.non-natural { background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.2); color: var(--accent); }
+        .ore-gen-box.disabled { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-dim); }
+        .ore-gen-box:hover { opacity: 0.8; transform: translateY(-2px); }
+        .ore-gen-box .tips { position: absolute; top: 100%; right: 0; font-size: 0.65rem; color: var(--accent); font-weight: 400; padding-top: 5px; font-style: italic; }
+        .ore-gen-box input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; }
+        .stone-row { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
+        .stone-row input { flex: 1; background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: white; padding: 0.75rem; border-radius: 8px; outline: none; }
+        .stone-row button { background: rgba(244, 63, 94, 0.1); color: var(--danger); border: 1px solid rgba(244, 63, 94, 0.2); padding: 0 1rem; border-radius: 8px; cursor: pointer; }
+        .json-area { 
+            display: flex; 
+            flex-direction: column; 
+            padding: 1.5rem; 
+            background: #05070a; 
+            height: 100%; 
+            overflow: hidden; 
+            transition: opacity 0.3s;
+        }
+        #json-out { 
+            flex: 1; 
+            background: #000; 
+            color: #10b981; 
+            border: 1px solid var(--border); 
+            border-radius: 12px; 
+            padding: 1.5rem; 
+            font-family: 'JetBrains Mono', monospace; 
+            font-size: 0.85rem; 
+            line-height: 1.5rem;
+            outline: none; 
+            resize: none; 
+            word-wrap: normal; 
+            white-space: pre; 
+            background-attachment: local;
+        }
+        .btn-action { background: var(--primary); color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700; cursor: pointer; }
+        .opt-card .tag-tooltip {
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translate(-50%, 100%);
+            background: #000;
+            color: var(--primary);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-family: 'JetBrains Mono', monospace;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.2s ease;
+            z-index: 9999;
+            border: 1px solid var(--primary);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .opt-card:hover .tag-tooltip {
+            opacity: 1;
+            bottom: 5px;
+        }
+        .summary-bar {
+            background: rgba(0,0,0,0.4);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            flex-shrink: 0;
+            backdrop-filter: blur(5px);
+        }
+        .summary-bar.active { display: block; }
+        .summary-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .summary-group {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 0.8rem;
+        }
+        .summary-group-title {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .summary-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .summary-chip {
+            background: rgba(129, 140, 248, 0.1);
+            border: 1px solid rgba(129, 140, 248, 0.2);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text);
+            position: relative;
+        }
+        .summary-chip img { width: 14px; height: 14px; image-rendering: pixelated; }
+        .summary-toggle-container {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+        .summary-toggle {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-top: none;
+            padding: 4px 20px;
+            cursor: pointer;
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: var(--primary);
+            border-radius: 0 0 10px 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .summary-toggle:hover { background: var(--bg); color: #fff; transform: translateY(2px); }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+    </style>
+</head>
+<body>
+<nav>
+    <a href="https://github.com/MathieuDorval/ORES-CORE" class="logo">ORES CORE</a>
+    <div class="nav-links">
+        <a href="registry_generator.html" class="active">Registry Generator</a>
+        <a href="ore_gen_manager.html">Ore Gen Generator</a>
+        <a href="material_reference.html">Material Reference</a>
+    </div>
+</nav>
+<header>
+    <div style="display: flex; flex-direction: column;">
+        <div style="font-size:1.8rem; font-weight:800; color:white;">Registry Tool</div>
+        <div style="font-size:0.8rem; color:var(--text-dim);">Generate your `registry.json` for materials and items.</div>
+    </div>
+    <div style="display: flex; gap: 0.8rem;">
+        <button class="btn-action" style="background: rgba(255,255,255,0.05); color:white; border:1px solid var(--border);" onclick="copyJson()">Copy JSON</button>
+        <button class="btn-action" onclick="downloadJson()">Download Registry</button>
+    </div>
+</header>
+<div style="position: relative; flex-shrink: 0;">
+    <div class="summary-bar" id="summary-bar">
+        <div class="summary-content" id="summary-content"></div>
+    </div>
+    <div class="summary-toggle-container">
+        <div class="summary-toggle" onclick="toggleSummary()">
+            REGISTRY SUMMARY <span id="summary-arrow">▼</span>
+        </div>
+    </div>
+</div>
+<main>
+    <div class="config-panel">
+        <div class="tabs">
+            <div class="tab active" id="t-mat" onclick="setTab('mat')">Material Registry</div>
+            <div class="tab" id="t-stones" onclick="setTab('stones')">Stones Replacement</div>
+        </div>
+        <div class="tab-content active" id="c-mat">
+            <div class="material-layout">
+                <div class="mat-list-side">
+                    <div class="search-area"><input type="text" id="mat-query" placeholder="Search materials..." oninput="renderMatList()"></div>
+                    <div class="mat-scroll" id="mat-list-container"></div>
+                </div>
+                <div class="mat-detail-side" id="mat-detail-area">
+                    <div style="height:100%; display:flex; align-items:center; justify-content:center; color:var(--text-dim); text-align:center;">
+                        <div><div style="font-size:3rem; margin-bottom:1rem;">⛏️</div>Select a material to configure</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="tab-content" id="c-stones">
+            <div class="mat-detail-side">
+                <h1 style="margin-top:0">Host Blocks</h1>
+                <p style="color:var(--text-dim); font-size:0.9rem; margin-bottom:1.5rem;">Blocks where ores can generate. Default Minecraft stones are already included.<br><span style="font-size:0.8rem; color:var(--primary); margin-top:5px; display:inline-block;">💡 You can use both Vanilla blocks (e.g. <code>minecraft:gravel</code>) or modded blocks by specifying their namespace (e.g. <code>create:limestone</code>).</span></p>
+                <div id="stones-list"></div>
+                <button onclick="addStoneRow('')" style="margin-top:1rem; width:100%; padding:1rem; border:1px dashed var(--border); background:none; color:var(--text-dim); cursor:pointer; border-radius:8px;">+ Add Host Block ID</button>
+            </div>
+        </div>
+    </div>
+    <div class="json-pane" id="json-pane">
+        <div class="toggle-json" id="toggle-json-btn" onclick="toggleJsonPanel()" title="Toggle JSON Preview">
+            <span id="toggle-icon">❯</span>
+        </div>
+        <div class="json-area">
+            <div style="font-size:0.75rem; font-weight:800; color:var(--primary); margin-bottom:0.4rem; letter-spacing: 0.5px;">Target: resources/data/ores/registry.json</div>
+            <div style="font-size:0.65rem; color:var(--text-dim); margin-bottom:0.8rem; padding: 0.5rem; background: rgba(129, 140, 248, 0.1); border-radius: 6px; border-left: 3px solid var(--primary);">
+                <strong>💡 Tip:</strong> Want to modify an existing configuration? Paste the JSON file content in the area below.
+            </div>
+            <textarea id="json-out" spellcheck="false" oninput="parseManualJson()"></textarea>
+            <div style="font-size:0.55rem; color:var(--text-dim); opacity: 0.5; margin-top: 0.4rem; text-align: right; font-style: italic;">
+                Psst: add <code>"debug"</code> to the <code>materials_registry</code> list to preview all combinations.
+            </div>
+        </div>
+    </div>
+</main>
+<script>
+    const DEFAULTS = {
+        mats: ["iron", "gold", "copper", "coal", "diamond", "emerald", "lapis", "redstone", "quartz", "netherite"],
+        stones: [
+            "minecraft:stone", "minecraft:deepslate", "minecraft:granite", "minecraft:diorite", "minecraft:andesite", 
+            "minecraft:tuff", "minecraft:calcite", "minecraft:smooth_basalt", "minecraft:dripstone_block", 
+            "minecraft:terracotta", "minecraft:netherrack", "minecraft:blackstone", "minecraft:basalt"
+        ]
+    };
+    let DB = {};
+    let ItemTypes = [];
+    let BlockTypes = [];
+    let Chemicals = [];
+    let AtlasMap = {};
+    async function loadData() {
+        try {
+            const dataRes = await fetch('data.json?' + new Date().getTime());
+            const atlasRes = await fetch('atlas.json?' + new Date().getTime());
+            if (!dataRes.ok || !atlasRes.ok) throw new Error("Assets not found");
+            const data = await dataRes.json();
+            AtlasMap = await atlasRes.json();
+            DB = {};
+            for (const [key, m] of Object.entries(data.materials)) {
+                DB[key] = {
+                    baseType: m.baseType || "ingot",
+                    drop: m.oreDropItem || key,
+                    baseItem: m.baseItemName || key,
+                    natural: (m.oreHardnessFactor > 0)
+                };
+            }
+            ItemTypes = Object.values(data.itemTypes).map(t => ({
+                id: (t.name === "SELF" || t.name === "INGOT" || t.name === "GEM") ? t.suffix || "self" : t.name.toLowerCase(),
+                label: t.name.toLowerCase().replace(/_/g, ' '),
+                pattern: t.override.translations ? t.override.translations[0] : null,
+                namingPattern: (t.override && t.override.namingPattern) ? t.override.namingPattern : null,
+                suffix: t.suffix ? "_" + t.suffix : "",
+                prefix: t.name.toLowerCase().startsWith("raw") ? "raw_" : (t.name.toLowerCase().startsWith("crushed") ? "crushed_" : ""),
+                tag: t.override.tagCategory ? t.override.tagCategory + "/%s" : null
+            }));
+            BlockTypes = Object.values(data.blockTypes).filter(t => t.name !== "ORE" && ((t.override && t.override.compressionLevel) || 0) === 0).map(t => ({
+                id: t.name.toLowerCase(),
+                label: t.name.toLowerCase().replace(/_/g, ' '),
+                pattern: t.override.translations ? t.override.translations[0] : null,
+                namingPattern: (t.override && t.override.namingPattern) ? t.override.namingPattern : null,
+                suffix: t.suffix ? "_" + t.suffix : "",
+                tag: t.override.tagCategory ? t.override.tagCategory + "/%s" : null
+            }));
+            Chemicals = Object.values(data.chemicalTypes).map(t => ({
+                id: t.name.toLowerCase(),
+                label: t.name.toLowerCase().replace(/_/g, ' '),
+                pattern: t.override.translations ? t.override.translations[0] : null,
+                namingPattern: (t.override && t.override.namingPattern) ? t.override.namingPattern : null,
+                suffix: t.suffix ? "_" + t.suffix : "",
+                tag: t.override.tagCategory ? t.override.tagCategory + "/%s" : null
+            }));
+            console.log("Registry Database synced with data.json");
+            renderMatList();
+        } catch (e) {
+            console.warn("Falling back to internal DB. Reason:", e.message);
+            DB = { 
+                "iron": {baseType:"ingot", drop:"raw_iron"}, 
+                "gold":{baseType:"ingot", drop:"raw_gold"}, 
+                "copper":{baseType:"ingot", drop:"raw_copper"},
+                "tin": {baseType:"ingot", drop:"raw_tin"}
+            };
+            renderMatList();
+        }
+    }
+    loadData();
+    const TIER_NAMES = ["", "Compressed", "Double Compressed", "Triple Compressed", "Quadruple Compressed", "Quintuple Compressed", "Sextuple Compressed", "Septuple Compressed", "Octuple Compressed", "Nonuple Compressed"];
+    const TIER_KEYS = ["", "compressed_", "double_compressed_", "triple_compressed_", "quadruple_compressed_", "quintuple_compressed_", "sextuple_compressed_", "septuple_compressed_", "octuple_compressed_", "nonuple_compressed_"];
+    const CompressedTypes = [
+        { id: "comp", pattern: "%t Block of %s", id_pattern: "%t%m_block", tag: "storage_blocks/compressed/level_%l/%s" },
+        { id: "comp_raw", pattern: "%t Block of Raw %s", id_pattern: "%traw_%m_block", tag: "storage_blocks/compressed/level_%l/raw_%s" },
+        { id: "comp_dust", pattern: "%t %s Dust Block", id_pattern: "%t%m_dust_block", tag: "storage_blocks/compressed/level_%l/%s_dust" }
+    ];
+    function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g,' '); }
+    function getRegId(m, o) {
+        if (o.id === "self" || o.id === "" ) {
+            const info = DB[m];
+            if (!info) return m;
+            return info.drop && info.drop.includes(':') ? info.drop.split(':')[1] : (info.baseItem || m);
+        }
+        if (o.namingPattern) return o.namingPattern.replace(/%s/g, m);
+        let id = m + (o.suffix || "");
+        if (o.id === "raw" || o.id === "raw_material") id = "raw_" + m;
+        if (o.id === "crushed_raw") id = "crushed_" + m;
+        if (o.id.startsWith("clean_")) id = "clean_" + m + "_slurry";
+        if (o.id.startsWith("dirty_")) id = "dirty_" + m + "_slurry";
+        return id;
+    }
+    function isVanillaReg(m, o) {
+        const id = getRegId(m, o);
+        const vanillaIds = [
+            "iron_ingot", "iron_nugget", "raw_iron", "iron_block", "raw_iron_block",
+            "gold_ingot", "gold_nugget", "raw_gold", "gold_block", "raw_gold_block",
+            "copper_ingot", "copper_nugget", "raw_copper", "copper_block", "raw_copper_block",
+            "coal", "coal_block", "diamond", "diamond_block", "emerald", "emerald_block",
+            "lapis_lazuli", "lapis_block", "redstone", "redstone_block",
+            "quartz", "quartz_block",
+            "netherite_ingot", "netherite_block", "netherite_scrap", "ancient_debris"
+        ];
+        if (vanillaIds.includes(id)) return true;
+        if (DEFAULTS.mats.includes(m)) {
+            const info = DB[m];
+            if (info && (o.id === info.baseType || (o.id === "self" && info.baseType === "self"))) return true;
+        }
+        return false;
+    }
+    function handleIconError(el, m, type) {
+        if (!el.dataset.attempt) el.dataset.attempt = "1";
+        const attempt = parseInt(el.dataset.attempt);
+        const folder = (type && type.includes('block')) ? 'block/' : 'item/';
+        const p = "../common/src/main/resources/assets/ores/textures/" + folder;
+        if (attempt === 1) {
+            el.src = p + m + "_ingot.png";
+            el.dataset.attempt = "2";
+        } else if (attempt === 2) {
+            el.src = p + m + "_gem.png";
+            el.dataset.attempt = "3";
+        } else if (attempt === 3) {
+            el.src = p + (folder === 'block/' ? "tin_block.png" : "tin_ingot.png");
+            el.style.opacity = "0.5";
+            el.dataset.attempt = "4";
+        }
+    }
+    const state = { mats: {}, stones: [ ], active: null, isPainting: false, paintMode: null };
+    window.addEventListener('mouseup', () => { state.isPainting = false; });
+    function setTab(t) { 
+        document.querySelectorAll('.tab, .tab-content').forEach(el => el.classList.remove('active')); 
+        document.getElementById('t-'+t).classList.add('active'); 
+        document.getElementById('c-'+t).classList.add('active');
+        if (t === 'stones' && state.stones.length === 0) {
+            addStoneRow('');
+        }
+    }
+    function renderMatList() {
+        const q = document.getElementById('mat-query').value.toLowerCase();
+        const container = document.getElementById('mat-list-container');
+        container.innerHTML = '';
+        const sorted = Object.keys(DB)
+            .filter(m => m.toLowerCase().includes(q))
+            .sort((a, b) => {
+                const dataA = state.mats[a] && (state.mats[a].gen || state.mats[a].registry.size > 0);
+                const dataB = state.mats[b] && (state.mats[b].gen || state.mats[b].registry.size > 0);
+                if (dataA && !dataB) return -1;
+                if (!dataA && dataB) return 1;
+                return a.localeCompare(b);
+            });
+        sorted.forEach(m => {
+            const div = document.createElement('div');
+            const has = state.mats[m] && (state.mats[m].gen || state.mats[m].registry.size > 0);
+            div.className = `mat-row ${state.active === m ? 'active' : ''} ${has ? 'has-data' : ''}`;
+            const info = DB[m];
+            const iconType = info.baseType === 'self' ? 'self' : info.baseType;
+            div.innerHTML = `${getIconHtml(m, iconType)} <span>${capitalize(m)}</span>`;
+            div.onclick = () => { 
+                state.active = m; 
+                renderMatList(); 
+                renderDetail(); 
+            };
+            container.appendChild(div);
+        });
+    }
+    function renderDetail() {
+        const m = state.active; if (!m) return;
+        if (!state.mats[m]) state.mats[m] = { gen: false, registry: new Set(), tiers: { comp: 0, comp_raw: 0, comp_dust: 0 } };
+        const data = state.mats[m];
+        const area = document.getElementById('mat-detail-area');
+        const canGen = !DEFAULTS.mats.includes(m);
+        const isNatural = (DB[m] && DB[m].natural !== false);
+        area.innerHTML = `
+            <div class="detail-header">
+                <h1 style="margin:0; font-size: 2.5rem;">${capitalize(m)}</h1>
+                ${canGen ? `
+                <div class="ore-gen-box ${!isNatural ? 'non-natural' : ''} ${!data.gen ? 'disabled' : ''}" onclick="toggleGen('${m}')">
+                    <input type="checkbox" ${data.gen ? 'checked' : ''} onmousedown="event.stopPropagation()">
+                    <span>Ore generation</span>
+                    ${!isNatural ? '<span class="tips">💡 Non-natural material</span>' : ''}
+                </div>` : ''}
+            </div>
+            <div class="section-title">Items</div>
+            <div class="options-grid">${ItemTypes.filter(o => !isVanillaReg(m, o)).map(o => renderCard(m, o, data)).join('')}</div>
+            <div class="section-title">Blocks</div>
+            <div class="options-grid">${BlockTypes.filter(o => !isVanillaReg(m, o)).map(o => renderCard(m, o, data, false, true)).join('')}</div>
+            <div class="section-title">Compressed Blocks</div>
+            <div class="options-grid">${CompressedTypes.map(o => renderCompCard(m, o, data)).join('')}</div>
+            <div class="section-title">Mekanism / Advanced</div>
+            <div class="options-grid">${Chemicals.map(o => renderCard(m, o, data)).join('')}</div>
+        `;
+    }
+    function renderCard(m, o, data, noIcon, isBlock) {
+        const id = getRegId(m, o);
+        const active = data.registry.has(id);
+        const type = isBlock ? 'block' : o.id;
+        const label = o.pattern ? o.pattern.replace('%s', capitalize(m)) : (o.label || o.id.replace(/_/g, ' '));
+        const tagText = o.tag ? '#c:' + o.tag.replace('%s', m) : '';
+        return `<div class="opt-card ${active ? 'active' : ''}" 
+            onmousedown="startPaint('${m}', '${id}', ${active})"
+            onmouseenter="doPaint('${m}', '${id}')">
+            ${!noIcon ? getIconHtml(m, type, o) : ''}
+            <span>${label}</span>
+            ${tagText ? `<div class="tag-tooltip">${tagText}</div>` : ''}
+        </div>`;
+    }
+    function startPaint(m, id, wasActive) {
+        state.isPainting = true;
+        state.paintMode = wasActive ? 'remove' : 'add';
+        toggleReg(m, id, state.paintMode);
+    }
+    function doPaint(m, id) {
+        if (!state.isPainting) return;
+        toggleReg(m, id, state.paintMode);
+    }
+    function renderCompCard(m, o, data) {
+        const tier = data.tiers[o.id] || 0;
+        const prefix = TIER_KEYS[tier] || "";
+        const mName = (o.id === 'comp_raw') ? "raw_" + m : m;
+        const suffix = (o.id === 'comp_dust') ? "_dust_block" : "_block";
+        const fname = prefix + mName + suffix;
+        const labelText = tier > 0 ? o.pattern.replace('%t', TIER_NAMES[tier]).replace('%s', capitalize(m)) : o.pattern.replace('%t', 'Compressed').replace('%s', capitalize(m)).replace('Compressed ', '');
+        const tagText = o.tag ? '#c:' + o.tag.replace('%l', tier).replace('%s', m) : '';
+        return `<div class="opt-card ${tier > 0 ? 'active' : ''}" onclick="handleCompClick(event, '${m}', '${o.id}')">
+            ` + getIconHtml(m, "block", {fname: fname}) + `
+            <span>${labelText}</span>
+            <select class="tier-selector" onclick="event.stopPropagation()" onchange="setTier('${m}', '${o.id}', this.value)">
+                <option value="0">None</option>
+                ${[1,2,3,4,5,6,7,8,9].map(t => `<option value="${t}" ${tier == t ? 'selected' : ''}>Tier ${t}</option>`).join('')}
+            </select>
+            ${tagText ? `<div class="tag-tooltip">${tagText}</div>` : ''}
+        </div>`;
+    }
+    function getIconHtml(m, type, o = {}) {
+        const folder = (o.suffix && o.suffix.includes('block')) || type === 'block' ? "block" : "item";
+        let fname = "";
+        if (o.namingPattern) {
+            fname = o.namingPattern.replace(/%s/g, m);
+        } else if (o.fname) {
+            fname = o.fname;
+        } else if (o.prefix !== undefined && o.suffix !== undefined && o.id === "compressed") {
+            fname = o.prefix + (o.id === 'comp_raw' ? ("raw_" + m) : m) + o.suffix;
+        } else if (type === "ingot") fname = m + "_ingot";
+        else if (type === "gem") fname = m + "_gem";
+        else if (type === "raw") fname = "raw_" + m;
+        else if (type === "self") {
+           const info = (typeof DB !== 'undefined' && DB[m]) ? DB[m] : null;
+           if (!info) fname = m;
+           else fname = (info.drop && info.drop.includes(':')) ? info.drop.split(':')[1] : (info.baseItem || m);
+        } else {
+           fname = (o.prefix || "") + m + (o.suffix || "");
+        }
+        
+        const key = folder + "/" + fname;
+        const entry = AtlasMap[key];
+        if (entry) {
+            return `<div class="atlas-icon" style="background-position: -${entry.x}px -${entry.y}px;"></div>`;
+        }
+        
+        let fbk = folder + "/" + m + "_ingot";
+        if (!AtlasMap[fbk]) fbk = folder + "/" + m + "_gem";
+        if (!AtlasMap[fbk]) fbk = folder + "/iron_ingot";
+        if (AtlasMap[fbk]) {
+            return `<div class="atlas-icon" style="background-position: -${AtlasMap[fbk].x}px -${AtlasMap[fbk].y}px; opacity:0.5;" title="Fallback"></div>`;
+        }
+        return `<div class="atlas-icon" style="opacity:0.2;" title="No texture found"></div>`;
+    }
+    
+    function getIcon(m, type, o = {}) {
+        const p = "../common/src/main/resources/assets/ores/textures/";
+        const folder = (o.suffix && o.suffix.includes('block')) || type === 'block' ? "block/" : "item/";
+        if (type === "ingot") return p + "item/" + m + "_ingot.png";
+        if (type === "gem") return p + "item/" + m + "_gem.png";
+        if (type === "raw") return p + "item/raw_" + m + ".png";
+        if (type === "self") {
+           const info = DB[m];
+           if (!info) return p + "item/" + m + ".png";
+           const baseName = info.drop.includes(':') ? info.drop.split(':')[1] : (info.baseItem || m);
+           return p + "item/" + baseName + ".png";
+        }
+        const fname = (o.prefix || "") + m + (o.suffix || "");
+        return p + folder + fname + ".png";
+    }
+    function toggleReg(m, id, forcedMode) {
+        const mat = state.mats[m];
+        const d = mat.registry;
+        const currentlyHas = d.has(id);
+        const shouldHave = forcedMode ? (forcedMode === 'add') : !currentlyHas;
+        if (currentlyHas && !shouldHave) {
+            d.delete(id);
+            const bBase = BlockTypes.find(b => b.id === 'block');
+            const bRaw = BlockTypes.find(b => b.id === 'raw_block');
+            const bDust = BlockTypes.find(b => b.id === 'dust_block');
+            if (bBase && id === getRegId(m, bBase)) mat.tiers.comp = 0;
+            if (bRaw && id === getRegId(m, bRaw)) mat.tiers.comp_raw = 0;
+            if (bDust && id === getRegId(m, bDust)) mat.tiers.comp_dust = 0;
+        } else if (!currentlyHas && shouldHave) {
+            d.add(id);
+        } else {
+            return;
+        }
+        renderDetail(); renderMatList(); updateJson();
+    }
+    function handleCompClick(e, m, type) {
+        if (e.target.tagName === 'SELECT') return;
+        const d = state.mats[m];
+        if (d.tiers[type] > 0) {
+            d.tiers[type] = 0; 
+        } else {
+            d.tiers[type] = 1;
+            autoAddBase(m, type);
+        }
+        renderDetail(); renderMatList(); updateJson();
+    }
+    function setTier(m, type, val) {
+        const d = state.mats[m];
+        d.tiers[type] = parseInt(val);
+        if (d.tiers[type] > 0) {
+            autoAddBase(m, type);
+        }
+        renderDetail(); renderMatList(); updateJson();
+    }
+    function autoAddBase(m, type) {
+        const d = state.mats[m];
+        let baseObj = null;
+        if (type === 'comp') baseObj = BlockTypes.find(b => b.id === 'block');
+        else if (type === 'comp_raw') baseObj = BlockTypes.find(b => b.id === 'raw_block');
+        else if (type === 'comp_dust') baseObj = BlockTypes.find(b => b.id === 'dust_block');
+        if (baseObj && !isVanillaReg(m, baseObj)) {
+            d.registry.add(getRegId(m, baseObj));
+        }
+    }
+    function toggleGen(m) {
+        const d = state.mats[m]; d.gen = !d.gen;
+        if (d.gen) {
+            const info = DB[m];
+            if (info.baseType === 'ingot') d.registry.add(m+'_ingot');
+            else if (info.baseType === 'gem') d.registry.add(m+'_gem');
+            else d.registry.add(getRegId(m, {id: "self"}));
+            if (!info.drop.includes(':')) d.registry.add(info.drop);
+        }
+        renderDetail(); renderMatList(); updateJson();
+    }
+    function renderStones() {
+        const c = document.getElementById('stones-list');
+        c.innerHTML = '';
+        state.stones.forEach((s, i) => {
+            const isDefault = DEFAULTS.stones.includes(s.trim());
+            const r = document.createElement('div');
+            r.className = 'stone-row';
+            r.innerHTML = `
+                <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                    <input type="text" id="stone-input-${i}" value="${s}" placeholder="namespace:stone" onkeydown="if(event.key==='Enter') addStoneRow('')">
+                    ${isDefault ? `<span style="font-size:0.7rem; color:var(--accent);">💡 Already added by Ores Core default registry.</span>` : ''}
+                </div>
+                <button onclick="state.stones.splice(${i},1); renderStones(); updateJson();" style="height:38px;">×</button>
+            `;
+            const input = r.querySelector('input');
+            input.oninput = (e) => {
+                state.stones[i] = e.target.value;
+                updateJson();
+            };
+            input.onblur = () => { renderStones(); };
+            c.appendChild(r);
+        });
+    }
+    function addStoneRow(v) { state.stones.push(v); renderStones(); updateJson(); }
+    function updateJson() {
+        const obj = { materials_registry: [], ore_generation: [], stones_replacement: state.stones.filter(s => s.trim().length > 0) };
+        Object.keys(state.mats).forEach(m => {
+            const d = state.mats[m];
+            if (d.gen) obj.ore_generation.push(m);
+            d.registry.forEach(id => obj.materials_registry.push(id));
+                Object.keys(d.tiers).forEach(tId => {
+                    const max = d.tiers[tId];
+                    const opt = CompressedTypes.find(c => c.id === tId);
+                    for(let i=1; i<=max; i++) {
+                        obj.materials_registry.push(opt.id_pattern.replace('%t', TIER_KEYS[i]).replace('%m', m));
+                    }
+                });
+        });
+        document.getElementById('json-out').value = JSON.stringify(obj, null, 4);
+        updateSummary(obj);
+    }
+    function parseManualJson() {
+        try {
+            const json = JSON.parse(document.getElementById('json-out').value);
+            state.stones = json.stones_replacement || [];
+            state.mats = {};
+            (json.ore_generation || []).forEach(m => { 
+                if (!state.mats[m]) state.mats[m] = { gen: true, registry: new Set(), tiers: { comp: 0, comp_raw: 0, comp_dust: 0 } }; 
+                state.mats[m].gen = true; 
+            });
+            (json.materials_registry || []).forEach(rid => {
+                let m = ""; 
+                Object.keys(DB).forEach(k => { if(rid.includes(k) && k.length > m.length) m = k; });
+                if (!m) return;
+                if (!state.mats[m]) state.mats[m] = { gen: false, registry: new Set(), tiers: { comp: 0, comp_raw: 0, comp_dust: 0 } };
+                let foundT = false;
+                CompressedTypes.forEach(ct => {
+                    for(let i=9; i>=1; i--) {
+                        let test = ct.id_pattern.replace('%t', TIER_KEYS[i]).replace('%m', m);
+                        if (rid === test) { state.mats[m].tiers[ct.id] = Math.max(state.mats[m].tiers[ct.id]||0, i); foundT = true; break; }
+                    }
+                });
+                if (!foundT) state.mats[m].registry.add(rid);
+            });
+            renderStones(); renderMatList(); if (state.active) renderDetail();
+        } catch(e) {}
+    }
+    function copyJson() { document.getElementById('json-out').select(); document.execCommand('copy'); }
+    function downloadJson() {
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([document.getElementById('json-out').value], {type:'application/json'})); a.download = 'registry.json'; a.click();
+    }
+    function toggleJsonPanel() {
+        const pane = document.getElementById('json-pane');
+        const icon = document.getElementById('toggle-icon');
+        pane.classList.toggle('collapsed');
+        icon.innerText = pane.classList.contains('collapsed') ? '❮' : '❯';
+    }
+    function toggleSummary() {
+        const bar = document.getElementById('summary-bar');
+        const arrow = document.getElementById('summary-arrow');
+        const isActive = bar.classList.toggle('active');
+        arrow.innerText = isActive ? '▲' : '▼';
+    }
+    function updateSummary(obj) {
+        const container = document.getElementById('summary-content');
+        const activeMats = Object.keys(state.mats).filter(m => {
+            const d = state.mats[m];
+            return d.gen || d.registry.size > 0 || Object.values(d.tiers).some(v => v > 0);
+        });
+        if (activeMats.length === 0) {
+            container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; color:var(--text-dim); padding: 2.5rem; font-size: 0.9rem;">No entries registered yet. Configure materials in the registry to see them here.</div>';
+            return;
+        }
+        container.innerHTML = '';
+        activeMats.forEach(m => {
+            const d = state.mats[m];
+            const info = DB[m] || { baseType: 'self' };
+            const mIconType = info.baseType === 'self' ? 'self' : info.baseType;
+            const group = document.createElement('div');
+            group.className = 'summary-group';
+            let chipsHtml = '';
+            const allTypes = [...ItemTypes, ...BlockTypes, ...Chemicals];
+            d.registry.forEach(rid => {
+                const matched = allTypes.find(t => getRegId(m, t) === rid);
+                let label = rid;
+                let iconHtml = '';
+                if (matched) {
+                    label = matched.pattern ? matched.pattern.replace('%s', capitalize(m)) : (matched.label || matched.id);
+                    const type = (matched.suffix && matched.suffix.includes('block')) ? 'block' : matched.id;
+                    iconHtml = getIconHtml(m, type, matched);
+                } else if (rid === m || (DB[m] && rid === DB[m].drop)) {
+                    label = capitalize(m);
+                    iconHtml = getIconHtml(m, mIconType);
+                }
+                chipsHtml += `
+                    <div class="summary-chip">
+                        <div style="transform: scale(0.75); margin-right: -4px;">${iconHtml}</div>
+                        <span title="${label}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${label}</span>
+                    </div>
+                `;
+            });
+            Object.keys(d.tiers).forEach(tId => {
+                const max = d.tiers[tId];
+                if (max <= 0) return;
+                const opt = CompressedTypes.find(c => c.id === tId);
+                for(let i=1; i<=max; i++) {
+                    const label = opt.pattern.replace('%t', TIER_NAMES[i]).replace('%s', capitalize(m));
+                    const prefix = TIER_KEYS[i] || "";
+                    const suffixKey = (opt.id === 'comp_raw') ? "raw_block" : ((opt.id === 'comp_dust') ? "dust_block" : "block");
+                    const fname = m + "_" + prefix + suffixKey;
+                    chipsHtml += `
+                        <div class="summary-chip" style="border-color: rgba(129, 140, 248, 0.3);">
+                            <div style="transform: scale(0.75); margin-right: -4px;">${getIconHtml(m, "block", {fname: fname})}</div>
+                            <span title="${label}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${label}</span>
+                        </div>
+                    `;
+                }
+            });
+            group.innerHTML = `
+                <div class="summary-group-title">
+                    <div style="transform: scale(0.75); margin-right: -4px;">${getIconHtml(m, mIconType)}</div>
+                    ${capitalize(m)} (${d.registry.size + Object.values(d.tiers).reduce((a, b) => a + b, 0)})
+                    ${d.gen ? '<span style="margin-left:auto; font-size: 0.5rem; color: var(--secondary); border: 1px solid var(--secondary); padding: 1px 4px; border-radius: 4px;">ORE GEN</span>' : ''}
+                </div>
+                <div class="summary-chips">
+                    ${chipsHtml}
+                </div>
+            `;
+            container.appendChild(group);
+        });
+        container.innerHTML += `
+            <div style="grid-column: 1/-1; display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 8px; border: 1px solid var(--border);">
+                <div style="display: flex; gap: 2rem;">
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase;">Total Registry Entries</span>
+                        <span style="font-size: 1.2rem; font-weight: 700; color: var(--primary);">${obj.materials_registry.length}</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase;">Active Ore Generations</span>
+                        <span style="font-size: 1.2rem; font-weight: 700; color: var(--secondary);">${obj.ore_generation.length}</span>
+                    </div>
+                </div>
+                <div style="color: var(--text-dim); font-size: 0.7rem; font-style: italic;">
+                    Check the JSON panel on the right for final output.
+                </div>
+            </div>
+            </div>
+        `;
+    }
+    renderMatList(); renderStones(); updateJson();
+</script>
+</body>
+</html>

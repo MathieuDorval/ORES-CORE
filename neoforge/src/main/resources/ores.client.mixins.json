@@ -1,0 +1,9 @@
+{
+	"required": true,
+	"package": "ores.mathieu.mixin.client",
+	"compatibilityLevel": "JAVA_21",
+	"client": [],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

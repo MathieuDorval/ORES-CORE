@@ -1,0 +1,16 @@
+{
+	"required": true,
+	"package": "ores.mathieu.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"NoiseGeneratorSettingsMixin",
+		"BiomeGenerationSettingsMixin",
+		"PackRepositoryMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}

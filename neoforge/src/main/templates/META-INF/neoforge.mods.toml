@@ -1,0 +1,32 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="${mod_license}"
+
+[[mods]]
+modId="${mod_id}"
+version="${mod_version}"
+displayName="${mod_name}"
+authors="__mathieu"
+description='''
+Unifies the management of materials and ores for Minecraft mods
+'''
+
+[[dependencies.${mod_id}]]
+    modId="neoforge"
+    type="required"
+    versionRange="[26.1.0.0-alpha,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="minecraft"
+    type="required"
+    versionRange="[26.1-snapshot,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[mixins]]
+config="ores.mixins.json"
+
+[[mixins]]
+config="ores.client.mixins.json"
