@@ -9,7 +9,7 @@
 // Description: Generates virtual resources like tags, models, and recipes at runtime.
 //
 // Author: __mathieu
-// Version: 26.1.003
+// Version: 26.1.004
 //
 // License: CC BY-NC-SA 4.0 (Attribution-NonCommercial-ShareAlike)
 // This code is free to be copied, shared, and adapted under the terms 
@@ -778,25 +778,36 @@ public class DynamicResourceGenerator {
         return GSON.toJson(json);
     }
 
-    private static String generateMekanismWashingRecipe(String dirtySlurry, String cleanSlurry) {
+    private static String generateMekanismSlurryRecipe(String type, String inputChemical, int inputAmt, String outputId, int outputAmt) {
         JsonObject json = new JsonObject();
-        json.addProperty("type", "mekanism:washing");
+        json.addProperty("type", "mekanism:" + type);
 
         JsonObject chemicalInput = new JsonObject();
-        chemicalInput.addProperty("amount", 1);
-        chemicalInput.addProperty("chemical", dirtySlurry);
+        chemicalInput.addProperty("amount", inputAmt);
+        chemicalInput.addProperty("chemical", inputChemical);
         json.add("chemical_input", chemicalInput);
 
-        JsonObject fluidInput = new JsonObject();
-        fluidInput.addProperty("amount", 5);
-        fluidInput.addProperty("tag", "minecraft:water");
-        json.add("fluid_input", fluidInput);
+        if (type.equals("washing")) {
+            JsonObject fluidInput = new JsonObject();
+            fluidInput.addProperty("amount", 5);
+            fluidInput.addProperty("tag", "minecraft:water");
+            json.add("fluid_input", fluidInput);
+        }
 
         JsonObject output = new JsonObject();
-        output.addProperty("amount", 1);
-        output.addProperty("id", cleanSlurry);
+        output.addProperty("amount", outputAmt);
+        output.addProperty("id", outputId);
         json.add("output", output);
 
+        return GSON.toJson(json);
+    }
+
+    private static String generateMekanismCombiningRecipe(JsonObject mainInput, JsonObject extraInput, JsonObject output) {
+        JsonObject json = new JsonObject();
+        json.addProperty("type", "mekanism:combining");
+        json.add("main_input", mainInput);
+        json.add("extra_input", extraInput);
+        json.add("output", output);
         return GSON.toJson(json);
     }
 
@@ -942,7 +953,6 @@ public class DynamicResourceGenerator {
                     addRecipeFile(matName + "_block_from_raw_block_blasting", generateSmeltingRecipe(rawBlockId, blockId, xp, smeltTime / 2, "blasting"), generatedRecipes);
                 }
             }
-
             if (ores.mathieu.compat.MekanismCompat.isMekanismLoaded()) {
 
                 if (hasDust) {
@@ -1038,7 +1048,7 @@ public class DynamicResourceGenerator {
                         addRecipeFile("mekanism/dissolution/" + matName + "_from_raw", generateMekanismChemicalRecipe("dissolution", rawIn, sulfuric, slurryOut2000), generatedRecipes);
                     }
 
-                    addRecipeFile("mekanism/washing/" + matName, generateMekanismWashingRecipe(dirtySlurryId, cleanSlurryId), generatedRecipes);
+                    addRecipeFile("mekanism/washing/" + matName, generateMekanismSlurryRecipe("washing", dirtySlurryId, 1, cleanSlurryId, 1), generatedRecipes);
 
                     if (hasCrystal) {
                         String crystalId = getEffectiveId(matName, "crystal");
@@ -1052,6 +1062,46 @@ public class DynamicResourceGenerator {
                             JsonObject crystalIn = new JsonObject(); crystalIn.addProperty("count", 1); crystalIn.addProperty("tag", "c:crystals/" + matName);
                             JsonObject shardOut1 = new JsonObject(); shardOut1.addProperty("count", 1); shardOut1.addProperty("id", shardId);
                             addRecipeFile("mekanism/injecting/" + matName + "_shard_from_crystal", generateMekanismChemicalRecipe("injecting", crystalIn, hcl, shardOut1), generatedRecipes);
+                        }
+                    }
+                if (hasOreBlock) {
+                    java.util.List<ores.mathieu.registry.RegistryDecoder.ResolvedOre> oresForMat = DiscoveryManager.DECODED_DATA.ores.stream().filter(o -> o.material == material).toList();
+                    for (ores.mathieu.registry.RegistryDecoder.ResolvedOre ore : oresForMat) {
+                        String stoneName = ore.stoneReplacement;
+                        String hostName = getCrushedHostBlock(stoneName);
+                        String stonePath = stoneName.contains(":") ? stoneName.split(":")[1] : stoneName;
+                        String oreName = stonePath + "_" + matName + "_ore";
+
+                        float avgDrops = (material.getOreDropMin() + material.getOreDropMax()) / 2.0f;
+                        int rawAmount = (int) Math.ceil(avgDrops * 3);
+                        int dustAmount = (int) Math.ceil(avgDrops * 8);
+
+                        String dropTypeStr = material.getOreDropItem();
+                        if (dropTypeStr == null || dropTypeStr.isEmpty()) {
+                            dropTypeStr = "gem".equals(material.getBaseType()) ? "gem" : "raw";
+                        }
+
+                        String dropTagCategory = "raw_materials";
+                        for (ores.mathieu.material.ItemType t : ores.mathieu.material.ItemType.values()) {
+                            if (t.name().equalsIgnoreCase(dropTypeStr) || t.getSuffix().equalsIgnoreCase(dropTypeStr)) {
+                                dropTagCategory = t.getDefaultOverride().getTagCategory();
+                                break;
+                            }
+                        }
+                        String dropTag = "c:" + dropTagCategory + "/" + matName;
+
+                        if (hasRawItem || "gem".equals(material.getBaseType()) || material.getOreDropItem() != null) {
+                            JsonObject rawIn = new JsonObject(); rawIn.addProperty("amount", Math.min(64, rawAmount)); rawIn.addProperty("tag", dropTag);
+                            JsonObject cobbleIn = new JsonObject(); cobbleIn.addProperty("item", hostName);
+                            JsonObject oreOut = new JsonObject(); oreOut.addProperty("id", "ores:" + oreName);
+                            addRecipeFile("mekanism/combining/" + oreName + "_from_raw", generateMekanismCombiningRecipe(rawIn, cobbleIn, oreOut), generatedRecipes);
+                        }
+                        if (hasDust) {
+                            JsonObject dustIn = new JsonObject(); dustIn.addProperty("amount", Math.min(64, dustAmount)); dustIn.addProperty("tag", "c:dusts/" + matName);
+                            JsonObject cobbleIn = new JsonObject(); cobbleIn.addProperty("item", hostName);
+                            JsonObject oreOut = new JsonObject(); oreOut.addProperty("id", "ores:" + oreName);
+                            addRecipeFile("mekanism/combining/" + oreName + "_from_dust", generateMekanismCombiningRecipe(dustIn, cobbleIn, oreOut), generatedRecipes);
+                        }
                         }
                     }
                 }

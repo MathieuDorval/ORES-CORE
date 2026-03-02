@@ -9,7 +9,7 @@
 // Description: Decodes registry.json data into internal material and object structures.
 //
 // Author: __mathieu
-// Version: 26.1.001
+// Version: 26.1.004
 //
 // License: CC BY-NC-SA 4.0 (Attribution-NonCommercial-ShareAlike)
 // This code is free to be copied, shared, and adapted under the terms 
@@ -154,6 +154,71 @@ public class RegistryDecoder {
                 }
             } else {
                 OresCoreCommon.LOGGER.warn("[ORES CORE WARNING] Unknown material '{}' requested in ore_generation.", oreMaterialName);
+            }
+        }
+
+        if (ores.mathieu.compat.MekanismCompat.isMekanismLoaded()) {
+            java.util.List<Material> activeMaterials = new ArrayList<>();
+            for (ResolvedObject obj : decoded.objects) {
+                if (!activeMaterials.contains(obj.material)) {
+                    activeMaterials.add(obj.material);
+                }
+            }
+
+            for (Material material : activeMaterials) {
+                boolean hasDust = decoded.objects.stream().anyMatch(o -> o.material == material && o.type == ItemType.DUST);
+                boolean hasDirtyDust = decoded.objects.stream().anyMatch(o -> o.material == material && o.type == ItemType.DIRTY_DUST);
+                boolean hasClump = decoded.objects.stream().anyMatch(o -> o.material == material && o.type == ItemType.CLUMP);
+                boolean hasShard = decoded.objects.stream().anyMatch(o -> o.material == material && o.type == ItemType.SHARD);
+                boolean hasCrystal = decoded.objects.stream().anyMatch(o -> o.material == material && o.type == ItemType.CRYSTAL);
+                boolean hasCleanSlurry = decoded.objects.stream().anyMatch(o -> o.material == material && o.type == ChemicalType.CLEAN);
+                boolean hasDirtySlurry = decoded.objects.stream().anyMatch(o -> o.material == material && o.type == ChemicalType.DIRTY);
+
+                if (hasDirtySlurry) hasCleanSlurry = true;
+                if (hasCleanSlurry) hasCrystal = true;
+                if (hasCrystal) hasShard = true;
+                if (hasShard) hasClump = true;
+                if (hasClump) hasDirtyDust = true;
+                if (hasDirtyDust) hasDust = true;
+
+                if (hasCleanSlurry) {
+                    String cleanName = String.format(ChemicalType.CLEAN.getDefaultOverride().getNamingPattern(), material.getName());
+                    ensureObjectRegistered(decoded, material, ChemicalType.CLEAN, cleanName);
+                }
+                if (hasDirtySlurry) {
+                    String dirtyName = String.format(ChemicalType.DIRTY.getDefaultOverride().getNamingPattern(), material.getName());
+                    ensureObjectRegistered(decoded, material, ChemicalType.DIRTY, dirtyName);
+                }
+                if (hasCrystal) {
+                    String crystalName = String.format(ItemType.CRYSTAL.getDefaultOverride().getNamingPattern(), material.getName());
+                    ensureObjectRegistered(decoded, material, ItemType.CRYSTAL, crystalName);
+                }
+                if (hasShard) {
+                    String shardName = String.format(ItemType.SHARD.getDefaultOverride().getNamingPattern(), material.getName());
+                    ensureObjectRegistered(decoded, material, ItemType.SHARD, shardName);
+                }
+                if (hasClump) {
+                    String clumpName = String.format(ItemType.CLUMP.getDefaultOverride().getNamingPattern(), material.getName());
+                    ensureObjectRegistered(decoded, material, ItemType.CLUMP, clumpName);
+                }
+                if (hasDirtyDust) {
+                    String dirtyDustName = String.format(ItemType.DIRTY_DUST.getDefaultOverride().getNamingPattern(), material.getName());
+                    ensureObjectRegistered(decoded, material, ItemType.DIRTY_DUST, dirtyDustName);
+                }
+                if (hasDust) {
+                    String dustName = String.format(ItemType.DUST.getDefaultOverride().getNamingPattern(), material.getName());
+                    ensureObjectRegistered(decoded, material, ItemType.DUST, dustName);
+                    
+                    String baseTypeString = material.getBaseType();
+                    if (baseTypeString != null) {
+                        try {
+                            ItemType baseType = ItemType.valueOf(baseTypeString.toUpperCase());
+                            String baseName = material.getBaseItemName() != null ? material.getBaseItemName() : material.getName();
+                            String expectedName = String.format(baseType.getDefaultOverride().getNamingPattern(), baseName);
+                            ensureObjectRegistered(decoded, material, baseType, expectedName);
+                        } catch (IllegalArgumentException ignored) {}
+                    }
+                }
             }
         }
 
