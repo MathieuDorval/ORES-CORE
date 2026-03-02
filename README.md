@@ -21,7 +21,7 @@
 *   **♾️ Infinite Ore Types:** Ores are generated dynamically, allowing for an **infinity of ore types** from any mod. Whether it's a common material or a unique modded resource, Ores Core makes **all mods compatible** out of the box—no more ugly stone ores in the middle of your beautiful modded stones!
 *   **⚡ Zero Dependencies & Blazing Fast:** Ores Core has **no dependencies**. Because it only generates the absolute minimum required assets at runtime, it ensures maximum performance and ultra-fast updates to the latest Minecraft, Fabric, or NeoForge versions.
 *   **🏔️ Advanced World Generation:** A bespoke, centralized system that goes far beyond vanilla limitations. It features custom ore shapes and advanced vertical distributions for a unique underground experience.
-    *   *Take full control:* Use **[Config Generator](https://mathieudorval.github.io/ORES-CORE/tools/registry_generator.html)**.
+    *   *Take full control:* Use **[Config Generator](https://mathieudorval.github.io/ORES-CORE/tools/ore_gen_manager.html)**.
 
 ---
 
