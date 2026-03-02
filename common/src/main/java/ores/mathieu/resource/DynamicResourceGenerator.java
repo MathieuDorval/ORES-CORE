@@ -9,7 +9,7 @@
 // Description: Generates virtual resources like tags, models, and recipes at runtime.
 //
 // Author: __mathieu
-// Version: 26.1.001
+// Version: 26.1.003
 //
 // License: CC BY-NC-SA 4.0 (Attribution-NonCommercial-ShareAlike)
 // This code is free to be copied, shared, and adapted under the terms 
@@ -263,8 +263,12 @@ public class DynamicResourceGenerator {
         String fullId = (isVanilla ? "minecraft:" : "ores:") + name;
 
         createTagFile("items", "c", tagGroup + "/" + matName, fullId);
-
         createTagFile("items", "c", tagGroup, "#c:" + tagGroup + "/" + matName);
+
+        if (tagGroup.equals("crushed_raw_materials") && ores.mathieu.compat.CreateCompat.isCreateLoaded()) {
+            createTagFile("items", "create", tagGroup + "/" + matName, fullId);
+            createTagFile("items", "create", tagGroup, "#create:" + tagGroup + "/" + matName);
+        }
 
         if (isBlock) {
             createTagFile("blocks", "c", tagGroup + "/" + matName, fullId);
@@ -801,6 +805,37 @@ public class DynamicResourceGenerator {
         return "{\"type\":\"" + recipeType + "\",\"category\":\"misc\",\"ingredient\":\"" + input + "\",\"result\":{\"id\":\"" + output + "\"},\"experience\":" + xp + ",\"cookingtime\":" + time + "}";
     }
 
+    private static String generateCreateRecipe(String type, JsonObject input, JsonArray results, Integer processingTime) {
+        JsonObject json = new JsonObject();
+        json.addProperty("type", "create:" + type);
+        JsonArray ingredients = new JsonArray();
+        ingredients.add(input);
+        json.add("ingredients", ingredients);
+        if (processingTime != null) {
+            json.addProperty("processing_time", processingTime);
+        }
+        json.add("results", results);
+        return GSON.toJson(json);
+    }
+
+    private static String getCrushedHostBlock(String host) {
+        if (host.equals("minecraft:stone")) return "minecraft:cobblestone";
+        if (host.equals("minecraft:deepslate")) return "minecraft:cobbled_deepslate";
+        
+        String path = host.contains(":") ? host.split(":")[1] : host;
+        String namespace = host.contains(":") ? host.split(":")[0] : "minecraft";
+
+        net.minecraft.resources.Identifier cobbledId1 = net.minecraft.resources.Identifier.fromNamespaceAndPath(namespace, "cobbled_" + path);
+        net.minecraft.resources.Identifier cobbledId2 = net.minecraft.resources.Identifier.fromNamespaceAndPath(namespace, "cobble" + path);
+        if (net.minecraft.core.registries.BuiltInRegistries.BLOCK.containsKey(cobbledId1)) {
+            return cobbledId1.toString();
+        } else if (net.minecraft.core.registries.BuiltInRegistries.BLOCK.containsKey(cobbledId2)) {
+            return cobbledId2.toString();
+        }
+
+        return host;
+    }
+
     private static String generateCompressionRecipe(String input, String output, int count) {
         String pattern = count == 4 ? "[\"##\",\"##\"]" : "[\"###\",\"###\",\"###\"]";
         return "{\"type\":\"minecraft:crafting_shaped\",\"category\":\"misc\",\"pattern\":" + pattern + ",\"key\":{\"#\":\"" + input + "\"},\"result\":{\"id\":\"" + output + "\"}}";
@@ -832,6 +867,7 @@ public class DynamicResourceGenerator {
             boolean hasClump = DiscoveryManager.DECODED_DATA.objects.stream().anyMatch(o -> o.material == material && o.type == ores.mathieu.material.ItemType.CLUMP);
             boolean hasShard = DiscoveryManager.DECODED_DATA.objects.stream().anyMatch(o -> o.material == material && o.type == ores.mathieu.material.ItemType.SHARD);
             boolean hasCrystal = DiscoveryManager.DECODED_DATA.objects.stream().anyMatch(o -> o.material == material && o.type == ores.mathieu.material.ItemType.CRYSTAL);
+            boolean hasCrushedRaw = DiscoveryManager.DECODED_DATA.objects.stream().anyMatch(o -> o.material == material && o.type == ores.mathieu.material.ItemType.CRUSHED_RAW);
             boolean hasOreBlock = DiscoveryManager.DECODED_DATA.ores.stream().anyMatch(o -> o.material == material);
 
             boolean hasCleanSlurry = DiscoveryManager.DECODED_DATA.objects.stream().anyMatch(o -> o.material == material && o.type == ores.mathieu.material.ChemicalType.CLEAN);
@@ -879,6 +915,15 @@ public class DynamicResourceGenerator {
                 int ratio = material.getCompressionRatio();
                 addRecipeFile(matName + "_block", generateCompressionRecipe(baseItemId, blockId, ratio), generatedRecipes);
                 addRecipeFile(matName + "_from_block", generateDecompressionRecipe(blockId, baseItemId, ratio), generatedRecipes);
+            }
+
+            if (hasCrushedRaw && hasBaseItem && !matName.equals("netherite")) {
+                String crushedId = getEffectiveId(matName, "crushed_raw");
+                String cId = crushedId.contains(":") ? crushedId : "ores:" + crushedId;
+                int smeltTime = material.getOreSmeltingTime();
+                float xp = material.getOreSmeltingXP();
+                addRecipeFile(matName + "_from_crushed_smelting", generateSmeltingRecipe(cId, baseItemId, xp, smeltTime, "smelting"), generatedRecipes);
+                addRecipeFile(matName + "_from_crushed_blasting", generateSmeltingRecipe(cId, baseItemId, xp, smeltTime / 2, "blasting"), generatedRecipes);
             }
 
             String rawBlockId = getEffectiveId(matName, "raw_block");
@@ -1008,6 +1053,62 @@ public class DynamicResourceGenerator {
                             JsonObject shardOut1 = new JsonObject(); shardOut1.addProperty("count", 1); shardOut1.addProperty("id", shardId);
                             addRecipeFile("mekanism/injecting/" + matName + "_shard_from_crystal", generateMekanismChemicalRecipe("injecting", crystalIn, hcl, shardOut1), generatedRecipes);
                         }
+                    }
+                }
+            }
+
+            if (ores.mathieu.compat.CreateCompat.isCreateLoaded()) {
+                boolean hasPlate = DiscoveryManager.DECODED_DATA.objects.stream().anyMatch(o -> o.material == material && o.type == ores.mathieu.material.ItemType.PLATE);
+
+                if (hasPlate && hasBaseItem) {
+                    JsonObject plateOut = new JsonObject(); plateOut.addProperty("id", getEffectiveId(matName, "plate"));
+                    JsonArray results = new JsonArray(); results.add(plateOut);
+
+                    JsonObject ingotIn = new JsonObject(); ingotIn.addProperty("tag", "c:ingots/" + matName);
+                    addRecipeFile("create/pressing/" + matName + "_ingot", generateCreateRecipe("pressing", ingotIn, results, null), generatedRecipes);
+                }
+
+                if (hasCrushedRaw) {
+                    String crushedId = getEffectiveId(matName, "crushed_raw");
+
+                    if (hasRawItem) {
+                        JsonObject out1 = new JsonObject(); out1.addProperty("id", crushedId);
+                        JsonObject out2 = new JsonObject(); out2.addProperty("chance", 0.75); out2.addProperty("id", "create:experience_nugget");
+                        JsonArray results = new JsonArray(); results.add(out1); results.add(out2);
+
+                        JsonObject rawIn = new JsonObject(); rawIn.addProperty("tag", "c:raw_materials/" + matName);
+                        addRecipeFile("create/crushing/raw_" + matName, generateCreateRecipe("crushing", rawIn, results, 400), generatedRecipes);
+                    }
+
+                    if (hasOreBlock) {
+                        java.util.List<ores.mathieu.registry.RegistryDecoder.ResolvedOre> oresForMat = DiscoveryManager.DECODED_DATA.ores.stream().filter(o -> o.material == material).toList();
+                        for (ores.mathieu.registry.RegistryDecoder.ResolvedOre ore : oresForMat) {
+                            String stoneName = ore.stoneReplacement;
+                            if (stoneName.equals("minecraft:ice")) continue;
+
+                            String stonePath = stoneName.contains(":") ? stoneName.split(":")[1] : stoneName;
+                            String oreName = stonePath + "_" + matName + "_ore";
+
+                            JsonObject out1 = new JsonObject(); out1.addProperty("id", crushedId);
+                            JsonObject out2 = new JsonObject(); out2.addProperty("chance", 0.75); out2.addProperty("id", crushedId);
+                            JsonObject out3 = new JsonObject(); out3.addProperty("chance", 0.75); out3.addProperty("id", "create:experience_nugget");
+                            JsonObject out4 = new JsonObject(); out4.addProperty("chance", 0.125); out4.addProperty("id", getCrushedHostBlock(stoneName));
+                            
+                            JsonArray crushingResults = new JsonArray(); crushingResults.add(out1); crushingResults.add(out2); crushingResults.add(out3); crushingResults.add(out4);
+                            JsonObject oreIn = new JsonObject(); oreIn.addProperty("item", "ores:" + oreName);
+                            addRecipeFile("create/crushing/" + oreName, generateCreateRecipe("crushing", oreIn, crushingResults, 250), generatedRecipes);
+
+                            JsonArray millingResults = new JsonArray(); millingResults.add(out1);
+                            addRecipeFile("create/milling/" + oreName, generateCreateRecipe("milling", oreIn, millingResults, 250), generatedRecipes);
+                        }
+                    }
+
+                    if (hasNugget) {
+                        JsonObject nuggetOut = new JsonObject(); nuggetOut.addProperty("count", 9); nuggetOut.addProperty("id", getEffectiveId(matName, "nugget"));
+                        JsonArray results = new JsonArray(); results.add(nuggetOut);
+
+                        JsonObject crushedIn = new JsonObject(); crushedIn.addProperty("item", crushedId.contains(":") ? crushedId : "ores:" + crushedId);
+                        addRecipeFile("create/splashing/crushed_" + matName, generateCreateRecipe("splashing", crushedIn, results, null), generatedRecipes);
                     }
                 }
             }
