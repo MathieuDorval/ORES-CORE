@@ -1,6 +1,5 @@
 <div align="center">
-  <img src="common/src/main/resources/assets/ores/icon.png" width="128" height="128" alt="Ores Core Logo">
-  <h1>Ores Core</h1>
+  <img src="tools/banner.png" alt="Ores Core Banner">
   <p><strong>The ultimate material unification and dynamic resource library for Minecraft.</strong></p>
 
   [![Fabric](https://img.shields.io/badge/Fabric-333333?style=for-the-badge&logo=fabric&logoColor=white)](https://fabricmc.net/)
