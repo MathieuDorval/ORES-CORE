@@ -42,13 +42,13 @@ repositories {
 
 dependencies {
     // For developers working in a 'Common' module:
-    compileOnly "com.github.MathieuDorval:ORES-CORE:common:v26.1.005"
+    compileOnly "com.github.MathieuDorval:ORES-CORE:common:v26.1.006"
 
     // Implementation for specific loaders:
     // Fabric
-    modImplementation "com.github.MathieuDorval:ORES-CORE:fabric:v26.1.005"
+    modImplementation "com.github.MathieuDorval:ORES-CORE:fabric:v26.1.006"
     // NeoForge
-    implementation "com.github.MathieuDorval:ORES-CORE:neoforge:v26.1.005"
+    implementation "com.github.MathieuDorval:ORES-CORE:neoforge:v26.1.006"
 }
 ```
 
