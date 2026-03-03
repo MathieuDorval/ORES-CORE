@@ -2,8 +2,10 @@
   <img src="tools/banner.png" alt="Ores Core Banner">
   <p><strong>The ultimate material unification and dynamic resource library for Minecraft.</strong></p>
 
-  [![Fabric](https://img.shields.io/badge/Fabric-333333?style=for-the-badge&logo=fabric&logoColor=white)](https://fabricmc.net/)
-  [![NeoForge](https://img.shields.io/badge/NeoForge-222222?style=for-the-badge&logo=neoforge&logoColor=white)](https://neoforged.net/)
+  [![Fabric](https://img.shields.io/badge/Fabric-333333?style=for-the-badge&logo=fabricmc&logoColor=white)](https://fabricmc.net/)
+  [![NeoForge](https://img.shields.io/badge/NeoForge-222222?style=for-the-badge&logo=neoforged&logoColor=white)](https://neoforged.net/)
+  [![Modrinth](https://img.shields.io/badge/Modrinth-00AF5C?style=for-the-badge&logo=modrinth&logoColor=white)](https://modrinth.com/mod/ores-core)
+  [![CurseForge](https://img.shields.io/badge/CurseForge-F16436?style=for-the-badge&logo=curseforge&logoColor=white)](https://www.curseforge.com/minecraft/mc-mods/ores-core)
   [![License](https://img.shields.io/badge/License-CC_BY--NC--SA_4.0-lightgrey?style=for-the-badge)](LICENSE)
 </div>
 
@@ -15,7 +17,7 @@
 
 ### 🚀 Key Solutions
 *   **🚫 No More Duplicate Materials:** Tired of having five different types of "Tin Ingot" in your modpack? Ores Core unifies common materials under a single set of tags and items.
-*   **🎨 Dynamic Asset Generation:** Why manually create textures, models, and loot tables for 90+ materials? Ores Core automatically generates textures and models on the fly. **Crucially, only the textures actually used by your modpack are generated in memory**, meaning the mod remains incredibly lightweight and loads instantly, even with thousands of potential combinations. While most are procedural, the mod also incorporates **bespoke, hand-crafted designs**.
+*   **🎨 Dynamic Asset Generation:** Why manually create textures, models, and loot tables for 90+ materials? Ores Core automatically generates textures and models on the fly. **Crucially, only the textures actually used by your modpack are generated in memory**, meaning the mod remains incredibly lightweight and loads instantly, even with thousands of potential combinations. Currently, the mod uses a **mix of custom hand-crafted designs and designs inspired by or adapted from other popular mods** to ensure both high quality and a familiar feel.
     *   *I believe the best materials are shaped together!* If you have **custom texture ideas** or proposals to improve how Minecraft materials look: 👉 **[Suggest your designs here](https://github.com/MathieuDorval/ORES-CORE/issues/new?template=proposition_contenu.yml)**
 *   **♾️ Infinite Ore Types:** Ores are generated dynamically, allowing for an **infinity of ore types** from any mod. Whether it's a common material or a unique modded resource, Ores Core makes **all mods compatible** out of the box—no more ugly stone ores in the middle of your beautiful modded stones!
 *   **⚡ Zero Dependencies & Blazing Fast:** Ores Core has **no dependencies**. Because it only generates the absolute minimum required assets at runtime, it ensures maximum performance and ultra-fast updates to the latest Minecraft, Fabric, or NeoForge versions.
@@ -40,13 +42,13 @@ repositories {
 
 dependencies {
     // For developers working in a 'Common' module:
-    compileOnly "com.github.MathieuDorval:ORES-CORE:common:v${mod_version}"
+    compileOnly "com.github.MathieuDorval:ORES-CORE:common:v26.1.005"
 
     // Implementation for specific loaders:
     // Fabric
-    modImplementation "com.github.MathieuDorval:ORES-CORE:fabric:v${mod_version}"
+    modImplementation "com.github.MathieuDorval:ORES-CORE:fabric:v26.1.005"
     // NeoForge
-    implementation "com.github.MathieuDorval:ORES-CORE:neoforge:v${mod_version}"
+    implementation "com.github.MathieuDorval:ORES-CORE:neoforge:v26.1.005"
 }
 ```
 
