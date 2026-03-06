@@ -1,0 +1,59 @@
+name: 🛠️ Content Addition/Modification Proposal
+description: Propose a code or texture modification (Materials, Items, Blocks, Config, etc.)
+title: "[<TYPE>] <Descriptive Title>"
+labels: ["enhancement", "proposal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Welcome!** Everyone is free to propose additions or changes for Ores Core and Ores Mods. Please note that all proposals will be reviewed, and only the repository owner can approve or deny them.
+  - type: checkboxes
+    id: guidelines
+    attributes:
+      label: Before starting
+      options:
+        - label: I have verified that this proposal has not already been made by someone else.
+          required: true
+  - type: dropdown
+    id: mod_type
+    attributes:
+      label: "Type of modification"
+      description: "What type of content do you want to modify or add?"
+      multiple: false
+      options:
+        - "🪨 [Ores Core] Material - MaterialsDatabase.java"
+        - "⛏️ [Ores Core] Item - ItemType.java"
+        - "🧱 [Ores Core] Block - BlockType.java"
+        - "🎨 [Ores Core] Texture - resources/assets/ores/textures"
+        - "⚙️ [Ores Core] Config - ConfigManager.java (Base Veins)"
+        - "⚙️ [Ores Mods] Config - Properties or Ore Generation Defaults"
+        - "🌍 [Ores Mods] Worldgen - Spawning Rules tweaks"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: explanation
+    attributes:
+      label: "📝 Short explanatory text"
+      description: "Briefly explain the addition or modification (why is it needed, what is it for, is it for balancing...)"
+      placeholder: "I would like to add Zinc because it is useful to create Brass..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: code_proposal
+    attributes:
+      label: "💻 Code proposal (if applicable)"
+      description: "Paste your Java code proposal here."
+      render: java
+    validations:
+      required: false
+
+  - type: textarea
+    id: texture_proposal
+    attributes:
+      label: "🖼️ Texture Proposal (if applicable)"
+      description: "Drag and drop your image file here."
+      placeholder: "Drop your image here..."
+    validations:
+      required: false

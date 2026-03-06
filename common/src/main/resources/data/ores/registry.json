@@ -1,0 +1,75 @@
+{
+  "materials_registry": [
+    "coal",
+    "coal_block",
+    
+    "copper_nugget",
+    "copper_ingot",
+    "raw_copper",
+    "copper_block",
+    "raw_copper_block",
+    
+    "iron_nugget",
+    "iron_ingot",
+    "raw_iron",
+    "iron_block",
+    "raw_iron_block",
+    
+    "gold_nugget",
+    "gold_ingot",
+    "raw_gold",
+    "gold_block",
+    "raw_gold_block",
+
+    "lapis_lazuli",
+    "lapis_block",
+        
+    "redstone",
+    "redstone_block",
+
+    "diamond",
+    "diamond_block",
+    
+    "emerald",
+    "emerald_block",
+    
+    "quartz",
+    "quartz_block",
+    
+    "netherite_ingot",
+    "netherite_scrap",
+    "netherite_block"
+  ],
+
+  "ore_generation": [
+    "coal",
+    "copper",
+    "iron",
+    "gold",
+    "diamond",
+    "emerald",
+    "lapis",
+    "redstone",
+    "quartz",
+    "netherite"
+  ],
+
+  "stones_replacement": [
+    "minecraft:stone",
+    "minecraft:deepslate",
+    "minecraft:granite",
+    "minecraft:diorite",
+    "minecraft:andesite",
+    "minecraft:tuff",
+    "minecraft:calcite",
+    "minecraft:smooth_basalt",
+    "minecraft:dripstone_block",
+    "minecraft:terracotta",
+    "minecraft:sandstone",
+    "minecraft:red_sandstone",
+
+    "minecraft:netherrack",
+    "minecraft:blackstone",
+    "minecraft:basalt"
+  ]
+}

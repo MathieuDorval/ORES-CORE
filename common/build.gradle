@@ -1,0 +1,16 @@
+plugins {
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+}
+
+base {
+	archivesName = "${archives_base_name}-common"
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	compileOnly "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation 'com.electronwill.night-config:toml:3.6.7'
+}
+loom {
+	accessWidenerPath = file("src/main/resources/ores.accesswidener")
+}

@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ores Core | Material Reference</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #818cf8;
+            --secondary: #c084fc;
+            --bg: #0b0f1a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text: #f8fafc;
+            --text-dim: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
+            --accent: #fbbf24;
+            --success: #10b981;
+        }
+        * { box-sizing: border-box; transition: all 0.2s ease; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(129, 140, 248, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(192, 132, 252, 0.1) 0%, transparent 40%);
+            color: var(--text);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+        nav {
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(11, 15, 26, 0.8);
+        }
+        .logo { 
+            font-size: 1.4rem; 
+            font-weight: 800; 
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); 
+            -webkit-background-clip: text; 
+            background-clip: text;
+            -webkit-text-fill-color: transparent; 
+            text-decoration: none;
+        }
+        .nav-links { display: flex; gap: 1.5rem; }
+        .nav-links a { 
+            color: var(--text-dim); 
+            text-decoration: none; 
+            font-weight: 600; 
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+        .nav-links a:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+        .nav-links a.active { color: var(--primary); background: rgba(129, 140, 248, 0.1); }
+        .container { max-width: 1400px; margin: 2rem auto; padding: 0 2rem; flex: 1; }
+        .header-section {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .header-section h1 { font-size: 3.5rem; font-weight: 800; margin-bottom: 0.5rem; letter-spacing: -1px; }
+        .header-section p { color: var(--text-dim); font-size: 1.1rem; }
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            background: rgba(255,255,255,0.03);
+            padding: 0.5rem;
+            border-radius: 16px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            border: 1px solid var(--border);
+        }
+        .tab {
+            padding: 0.8rem 2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+        .tab:hover { color: white; }
+        .tab.active { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(129, 140, 248, 0.3); }
+        .search-box {
+            max-width: 600px;
+            margin: 0 auto 3rem;
+            position: relative;
+        }
+        .search-box input {
+            width: 100%;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 1.2rem 3rem;
+            border-radius: 50px;
+            color: white;
+            font-size: 1.1rem;
+            outline: none;
+            text-align: center;
+        }
+        .search-box::before { content: '🔍'; position: absolute; left: 20px; top: 50%; transform: translateY(-50%); opacity: 0.5; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            display: none;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .grid.active { display: grid; }
+        @media (max-width: 650px) {
+            .container { padding: 0 1rem; }
+            .grid { grid-template-columns: 1fr; }
+        }
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+        .card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 10px 40px rgba(0,0,0,0.4); }
+        .card-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; min-width: 0; }
+        .card-header img { width: 48px; height: 48px; image-rendering: pixelated; flex-shrink: 0; }
+        img, a {
+            -webkit-user-drag: none;
+        }
+        .atlas-icon {
+            display: inline-block;
+            background-image: url('ores_content_overview.png');
+            background-repeat: no-repeat;
+            image-rendering: pixelated;
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+        .card-header .atlas-icon { transform: scale(3); transform-origin: left center; margin-right: 32px; }
+        .card-header h2 { 
+            margin: 0; 
+            font-size: clamp(1rem, 4vw, 1.4rem); 
+            font-weight: 800; 
+            color: white; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis;
+            flex: 1;
+        }
+        .badges-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1.2rem; min-height: 24px; }
+        .badge { font-size: 0.65rem; font-weight: 900; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; border: 1px solid transparent; }
+        .badge-rarity-uncommon { background: rgba(253, 224, 96, 0.1); color: #facc15; border-color: rgba(250, 204, 21, 0.2); }
+        .badge-rarity-rare { background: rgba(129, 140, 248, 0.1); color: #818cf8; border-color: rgba(129, 140, 248, 0.2); }
+        .badge-rarity-epic { background: rgba(192, 132, 252, 0.1); color: #c084fc; border-color: rgba(192, 132, 252, 0.2); }
+        .badge-mining { background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: rgba(16, 185, 129, 0.2); }
+        .badge-mining::before { content: '⛏️ '; }
+        .badge-flag { background: rgba(255, 255, 255, 0.05); color: var(--text-dim); border-color: var(--border); }
+        .badge-flag.active { background: rgba(251, 191, 36, 0.1); color: var(--accent); border-color: rgba(251, 191, 36, 0.2); }
+        .badge-tag { background: rgba(56, 189, 248, 0.1); color: #38bdf8; border-color: rgba(56, 189, 248, 0.2); font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; }
+        .props { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; flex: 1; overflow-y: auto; max-height: 300px; padding-right: 5px; }
+        .props::-webkit-scrollbar { width: 4px; }
+        .props::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .prop { display: flex; flex-direction: column; gap: 4px; padding: 8px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid transparent; }
+        .prop:hover { border-color: rgba(255,255,255,0.05); background: rgba(255,255,255,0.04); }
+        .prop-label { font-size: 0.6rem; text-transform: uppercase; font-weight: 800; color: var(--text-dim); }
+        .prop-value { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+        .color-preview { width: 14px; height: 14px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); }
+        .color-strip { height: 6px; border-radius: 3px; width: 100%; margin-top: 1rem; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        .empty-state { grid-column: 1 / -1; text-align: center; padding: 5rem; color: var(--text-dim); font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+<nav>
+    <a href="https://github.com/MathieuDorval/ORES-CORE" class="logo">ORES CORE</a>
+    <div class="nav-links">
+        <a href="registry_generator.html">Registry Generator</a>
+        <a href="ore_gen_manager.html">Ore Gen Generator</a>
+        <a href="material_reference.html" class="active">Material Reference</a>
+    </div>
+</nav>
+<div class="container">
+    <div class="header-section">
+        <h1>Material Reference</h1>
+        <p>A technical encyclopedia of all materials, item types, and block behaviors in Ores Core.</p>
+    </div>
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('materials')">Materials</div>
+        <div class="tab" onclick="switchTab('items')">Item Types</div>
+        <div class="tab" onclick="switchTab('blocks')">Block Types</div>
+        <div class="tab" onclick="switchTab('chemicals')">Chemicals</div>
+    </div>
+    <div class="search-box">
+        <input type="text" id="ref-search" placeholder="Search by name, property or tag..." oninput="filterCurrentTab()">
+    </div>
+    <div id="materials-grid" class="grid active"></div>
+    <div id="items-grid" class="grid"></div>
+    <div id="blocks-grid" class="grid"></div>
+    <div id="chemicals-grid" class="grid"></div>
+</div>
+<script>
+    let DATABASE = { materials: {}, itemTypes: {}, blockTypes: {}, chemicalTypes: {}, _metadata: {} };
+    let AtlasMap = {};
+    let activeTab = 'materials';
+    async function loadDatabase() {
+        try {
+            const dataRes = await fetch('data.json?' + new Date().getTime());
+            const atlasRes = await fetch('atlas.json?' + new Date().getTime());
+            if (!dataRes.ok || !atlasRes.ok) throw new Error("File not found");
+            DATABASE = await dataRes.json();
+            AtlasMap = await atlasRes.json();
+            console.log("Database loaded from data.json");
+        } catch (e) {
+            console.warn("data.json not found or invalid. Please run 'generateAssets' in Java. Using local storage fallback.");
+            const local = localStorage.getItem('ores_data_sync');
+            if (local) DATABASE = JSON.parse(local);
+        }
+        renderTab(activeTab);
+    }
+    function switchTab(tabId) {
+        activeTab = tabId;
+        document.querySelectorAll('.tab').forEach(t => {
+            t.classList.toggle('active', t.innerText.toLowerCase().startsWith(tabId.substring(0, 3)));
+        });
+        document.querySelectorAll('.grid').forEach(g => {
+            g.classList.toggle('active', g.id === `${tabId}-grid`);
+        });
+        renderTab(tabId);
+    }
+    function toggleImporter() {
+        const el = document.getElementById('importer');
+        el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+    function importData() {
+        try {
+            const json = document.getElementById('import-json').value;
+            DATABASE = JSON.parse(json);
+            localStorage.setItem('ores_data_sync', json);
+            renderTab(activeTab);
+            toggleImporter();
+            alert("Data Updated Successfully!");
+        } catch(e) { alert("Invalid JSON format!"); }
+    }
+    const DEFAULTS = {
+        rarity: "COMMON", fireproof: false, beacon: false, piglinLoved: false, trimmable: false,
+        miningLevel: 0, blockPushReaction: "NORMAL", orePushReaction: "NORMAL",
+        maxStackSize: 64, slipperiness: 0.6, speedFactor: 1.0, jumpFactor: 1.0,
+        blockRedstonePower: 0, blockLightLevel: 0, blockLightMode: "NONE", 
+        blockParticleMode: "NONE", blockParticleIntensity: 1.0, blockGravityMode: "NONE",
+        oreLightLevel: 0, oreLightMode: "NONE", oreParticleMode: "NONE", oreParticleIntensity: 1.0, oreGravityMode: "NONE",
+        oreDropXPMin: 0, oreDropXPMax: 0, oreSmeltingXP: 0, oreSmeltingTime: 200,
+        fuelTime: 0, ignitedByLava: false, compressionRatio: 9, sound: "STONE", mapColor: "STONE",
+        blockColor: -1, chemicalCleanColor: -1, chemicalDirtyColor: -1, chemicalSlurryColor: -1,
+        canBeFireproof: false, canBeBeaconBase: false, canBeBeaconPayment: false, canBePiglinLoved: false, canBeTrimmable: false,
+        fuelFactor: 0, smeltingMultiplier: 0, xpMultiplier: 0, useRawColor: false
+    };
+    const BADGE_KEYS = ["rarity", "miningLevel", "fireproof", "beacon", "piglinLoved", "trimmable", "ignitedByLava", 
+                        "canBeFireproof", "canBeBeaconBase", "canBeBeaconPayment", "canBePiglinLoved", "canBeTrimmable"];
+    function isColorKey(key) {
+        return key.toLowerCase().includes('color') && !key.toLowerCase().includes('mode');
+    }
+    function formatLabel(key) {
+        return key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+    }
+    function renderTab(tabId, filter = '') {
+        const grid = document.getElementById(`${tabId}-grid`);
+        if (!grid) return;
+        grid.innerHTML = '';
+        const dbKeyMap = {
+            'materials': 'materials',
+            'items': 'itemTypes',
+            'blocks': 'blockTypes',
+            'chemicals': 'chemicalTypes'
+        };
+        const activeDbKey = dbKeyMap[tabId];
+        const dataRoot = DATABASE[activeDbKey] || {};
+        const query = filter.toLowerCase();
+        const keys = Object.keys(dataRoot).filter(k => {
+            if (tabId === 'blocks' && k.toUpperCase().includes('ORE')) return false;
+            if (!query) return true;
+            const item = dataRoot[k];
+            let searchText = [k, item.nameEN, item.nameFR, item.rarity, item.miningLevel ? `level ${item.miningLevel}` : ""].join(" ").toLowerCase();
+            Object.entries(item).forEach(([pk, pv]) => {
+                if (pk !== 'override') {
+                    searchText += " " + String(pv).toLowerCase();
+                    if (pv === true) searchText += " " + pk.toLowerCase();
+                }
+            });
+            if (item.override) {
+                Object.entries(item.override).forEach(([pk, pv]) => {
+                    searchText += " " + String(pv).toLowerCase();
+                    if (pv === true) searchText += " " + pk.toLowerCase();
+                    if (pk === 'miningLevel') searchText += ` level ${pv}`;
+                });
+            }
+            return searchText.includes(query);
+        }).sort((a, b) => a.localeCompare(b));
+        if (keys.length === 0) {
+            grid.innerHTML = `<div class="empty-state">No ${tabId} found matching your search.</div>`;
+            return;
+        }
+        keys.forEach(key => {
+            const item = dataRoot[key];
+            const card = document.createElement('div');
+            card.className = 'card';
+            let allProps = { ...item };
+            if (item.override) {
+                Object.assign(allProps, item.override);
+            }
+            let title = key;
+            let iconHtml = '';
+            if (tabId === 'materials') {
+                title = item.nameEN || key;
+                let tk = "item/" + item.name + "_ingot";
+                if(item.baseType === 'self') tk = "item/" + item.name + "_gem";
+                else if(item.baseType !== 'ingot') tk = "item/raw_" + item.name;
+                
+                if (!AtlasMap[tk]) tk = "item/" + item.name;
+                if (!AtlasMap[tk]) tk = "block/" + item.name + "_block";
+                
+                if (AtlasMap[tk]) {
+                    iconHtml = `<div class="atlas-icon" style="background-position: -${AtlasMap[tk].x}px -${AtlasMap[tk].y}px;"></div>`;
+                } else {
+                    iconHtml = `<div class="atlas-icon" style="opacity:0.2;"></div>`;
+                }
+            } else {
+                const pattern = allProps.namingPattern || (allProps.suffix ? `%s_${allProps.suffix}` : null);
+                if (pattern) {
+                    const imgName = pattern.replace('%s', 'aluminum');
+                    const folder = tabId === 'blocks' ? 'block' : 'item';
+                    const tk = folder + "/" + imgName;
+                    if (AtlasMap[tk]) {
+                        iconHtml = `<div class="atlas-icon" style="background-position: -${AtlasMap[tk].x}px -${AtlasMap[tk].y}px;"></div>`;
+                    } else {
+                        const emoji = tabId === 'blocks' ? '🏗️' : (tabId === 'items' ? '📦' : '🧪');
+                        iconHtml = `<div style="font-size:1.5rem;">${emoji}</div>`;
+                    }
+                } else {
+                    const emoji = tabId === 'blocks' ? '🏗️' : (tabId === 'items' ? '📦' : '🧪');
+                    iconHtml = `<div style="font-size:1.5rem;">${emoji}</div>`;
+                }
+                if (allProps.suffix) title = formatLabel(allProps.suffix);
+            }
+            let badgesHtml = '';
+            if (allProps.tagCategory) {
+                badgesHtml += `<span class="badge badge-tag">#c:${allProps.tagCategory}</span>`;
+            }
+            const rarity = allProps.rarity || 'COMMON';
+            if (rarity !== 'COMMON') {
+                badgesHtml += `<span class="badge badge-rarity-${rarity.toLowerCase()}">${rarity}</span>`;
+            }
+            if (allProps.miningLevel && allProps.miningLevel > 0) {
+                badgesHtml += `<span class="badge badge-mining">LEVEL ${allProps.miningLevel}</span>`;
+            }
+            const flags = ["fireproof", "beacon", "piglinLoved", "trimmable", "ignitedByLava", "canBeFireproof", "canBeBeaconBase", "canBeBeaconPayment", "canBePiglinLoved", "canBeTrimmable"];
+            flags.forEach(f => {
+                if (allProps[f] === true) {
+                    badgesHtml += `<span class="badge badge-flag active">${formatLabel(f)}</span>`;
+                }
+            });
+            let detailItems = [];
+            const skipKeys = ["name", "suffix", "namingPattern", "tagCategory", "override", ...BADGE_KEYS];
+            Object.entries(allProps).forEach(([k, v]) => {
+                if (skipKeys.includes(k)) return;
+                if (k.toLowerCase().startsWith('translation') || k.toLowerCase().startsWith('name')) return;
+                if (v === null || v === undefined || v === "") return;
+                if (DEFAULTS[k] !== undefined && DEFAULTS[k] === v) return;
+                detailItems.push({ k, v });
+            });
+            const propsHtml = detailItems.map(p => {
+                let valHtml = p.v;
+                if (isColorKey(p.k) && typeof p.v === 'number' && p.v !== -1) {
+                    const hex = '#' + p.v.toString(16).padStart(6, '0');
+                    valHtml = `<div class="color-preview" style="background: ${hex}" title="${hex}"></div> ${hex}`;
+                } else if (typeof p.v === 'boolean') {
+                    valHtml = p.v ? 'YES' : 'NO';
+                }
+                return `
+                    <div class="prop">
+                        <span class="prop-label">${formatLabel(p.k)}</span>
+                        <span class="prop-value">${valHtml}</span>
+                    </div>
+                `;
+            }).join('');
+            const colorStrip = item.baseColorHigh ? `<div class="color-strip" style="background: #${item.baseColorHigh.toString(16).padStart(6, '0')}"></div>` : '';
+            card.innerHTML = `
+                <div class="card-header">
+                    ${iconHtml}
+                    <h2>${title}</h2>
+                </div>
+                <div class="badges-row">
+                    ${badgesHtml}
+                </div>
+                <div class="props">
+                    ${propsHtml}
+                </div>
+                ${colorStrip}
+            `;
+            grid.appendChild(card);
+        });
+    }
+    function filterCurrentTab() {
+        const q = document.getElementById('ref-search').value;
+        renderTab(activeTab, q);
+    }
+    loadDatabase();
+</script>
+</body>
+</html>

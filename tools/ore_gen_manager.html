@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ores Core | Ore Gen Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #818cf8;
+            --primary-glow: rgba(129, 140, 248, 0.4);
+            --secondary: #c084fc;
+            --bg: #0b0f1a;
+            --card-bg: rgba(30, 41, 59, 1);
+            --text: #f8fafc;
+            --text-dim: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
+            --accent: #fbbf24;
+            --danger: #f43f5e;
+            --success: #10b981;
+        }
+        .atlas-icon {
+            display: inline-block;
+            background-image: url('ores_content_overview.png');
+            background-repeat: no-repeat;
+            image-rendering: pixelated;
+            width: 16px;
+            height: 16px;
+        }
+        * { box-sizing: border-box; transition: all 0.1s ease; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(129, 140, 248, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(192, 132, 252, 0.12) 0%, transparent 40%);
+            color: var(--text);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        nav {
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(11, 15, 26, 0.8);
+        }
+        .logo { 
+            font-size: 1.4rem; 
+            font-weight: 800; 
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); 
+            -webkit-background-clip: text; 
+            background-clip: text;
+            -webkit-text-fill-color: transparent; 
+            text-decoration: none;
+        }
+        .nav-links { display: flex; gap: 1.5rem; }
+        .nav-links a { 
+            color: var(--text-dim); 
+            text-decoration: none; 
+            font-weight: 600; 
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+        .nav-links a:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+        .nav-links a.active { color: var(--primary); background: rgba(129, 140, 248, 0.1); }
+        header {
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+        main {
+            display: flex;
+            flex: 1;
+            min-height: 0; 
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+        .json-pane {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid var(--border);
+            transition: width 0.3s ease-in-out;
+            width: 400px;
+            min-width: 0;
+            flex-shrink: 0;
+            overflow: visible;
+        }
+        .json-pane.collapsed {
+            width: 0 !important;
+            border-left: none;
+        }
+        .json-pane.collapsed .json-area {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .json-area { 
+            display: flex; 
+            flex-direction: column; 
+            padding: 1.5rem; 
+            background: #05070a; 
+            height: 100%; 
+            overflow: hidden; 
+            transition: opacity 0.3s;
+        }
+        #toml-out { 
+            flex: 1; 
+            background: #000; 
+            color: #10b981; 
+            border: 1px solid var(--border); 
+            border-radius: 12px; 
+            padding: 1.5rem; 
+            font-family: 'JetBrains Mono', monospace; 
+            font-size: 0.85rem; 
+            line-height: 1.5rem; 
+            outline: none; 
+            resize: none; 
+            word-wrap: normal; 
+            white-space: pre; 
+            background-attachment: local; 
+        }
+        #toml-out.malformed { border-color: var(--accent); box-shadow: 0 0 10px rgba(251, 191, 36, 0.4); }
+        .toml-error-log {
+            background: rgba(251, 191, 36, 0.1);
+            color: var(--accent);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            margin-bottom: 10px;
+            display: none;
+            border: 1px solid rgba(251, 191, 36, 0.2);
+        }
+        .toml-error-log.active { display: block; }
+        .toggle-json {
+            position: absolute;
+            left: -30px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 30px;
+            height: 60px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-right: none;
+            border-radius: 8px 0 0 8px;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+        }
+        .toggle-json:hover { color: var(--primary); background: rgba(0,0,0,0.4); }
+        .material-layout { 
+            display: flex;
+            height: 100%; 
+            overflow: hidden; 
+            flex: 1;
+            min-width: 0;
+        }
+        .mat-list-side { 
+            border-right: 1px solid var(--border); 
+            display: flex; 
+            flex-direction: column; 
+            width: 320px;
+            background: rgba(10, 13, 20, 0.5);
+            flex-shrink: 0;
+            min-width: 320px;
+        }
+        @media (max-width: 1200px) {
+            .material-layout { flex-direction: column; overflow-y: auto; }
+            .mat-list-side { width: 100%; min-width: 100%; height: 300px; border-right: none; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+            .mat-detail-side { overflow-y: visible; flex: none; height: auto; }
+            .json-pane { position: fixed; right: 0; top: 120px; bottom: 0; z-index: 2000; height: auto; background: var(--bg); }
+        }
+        .search-area { 
+            padding: 1rem; 
+            background: rgba(0,0,0,0.2); 
+            display: flex; 
+            gap: 8px;
+            align-items: center;
+        }
+        .search-area input { 
+            flex: 1; 
+            min-width: 0;
+            background: var(--card-bg); 
+            border: 1px solid var(--border); 
+            color: white; 
+            padding: 0.7rem 1rem; 
+            border-radius: 10px; 
+            font-size: 0.85rem; 
+        }
+        .vanilla-toggle {
+            padding: 0.7rem 0.8rem;
+            border-radius: 10px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            font-size: 0.6rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .vanilla-toggle.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .vanilla-toggle:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.1);
+        }
+        .mat-scroll { flex: 1; overflow-y: auto; padding: 0.5rem; }
+        .mat-row { padding: 0.6rem 1rem; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 0.8rem; font-size: 0.9rem; color: var(--text-dim); margin-bottom: 2px; }
+        .mat-row:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+        .mat-row.active { background: var(--primary); color: white; font-weight: 600; }
+        .mat-row.has-data::after { content: '●'; margin-left: auto; font-size: 0.6rem; color: var(--success); }
+        .mat-row img { width: 22px; height: 22px; image-rendering: pixelated; }
+        .mat-detail-side { padding: 2rem; overflow-y: auto; flex: 1; position: relative; }
+        .vein-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        .vein-card:hover { border-color: var(--primary); }
+        .vein-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .input-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.2rem; }
+        .input-group { display: flex; flex-direction: column; gap: 6px; }
+        .input-group label { font-size: 0.7rem; text-transform: uppercase; font-weight: 800; color: var(--text-dim); letter-spacing: 0.5px; display: flex; align-items: center; gap: 5px; }
+        .input-group .optional { font-size: 0.6rem; opacity: 0.5; text-transform: lowercase; font-weight: 400; }
+        .input-group input, .input-group select { 
+            background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: white; padding: 0.7rem; border-radius: 8px; outline: none; font-family: inherit; font-size: 0.85rem;
+        }
+        .input-group input:focus { border-color: var(--primary); }
+        .input-group.has-error input, .input-group.has-error select { border-color: var(--accent) !important; box-shadow: 0 0 10px rgba(251, 191, 36, 0.2); }
+        .input-group.has-error label { color: var(--accent) !important; }
+        .range-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; grid-column: span 1; min-width: 0; }
+        .range-row .input-group input { padding: 0.6rem 0.4rem; font-size: 0.8rem; width: 100%; min-width: 0; }
+        .range-row label { font-size: 0.6rem !important; }
+        .warn-msg { color: var(--accent); font-size: 0.65rem; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+        .multi-picker {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        .picker-tag {
+            background: rgba(255,255,255,0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .picker-tag .remove { cursor: pointer; color: var(--danger); font-weight: 800; }
+        .add-picker {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .ratio-grid {
+            display: grid;
+            grid-template-columns: 1fr 60px;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        .delete-btn { color: var(--danger); background: none; border: none; cursor: pointer; padding: 5px; opacity: 0.5; font-size: 0.8rem; font-weight: 600; }
+        .delete-btn:hover { opacity: 1; }
+        .btn-action { background: var(--primary); color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700; cursor: pointer; }
+        .summary-bar {
+            background: rgba(0,0,0,0.4);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            flex-shrink: 0;
+            backdrop-filter: blur(5px);
+        }
+        .summary-bar.active { display: block; }
+        .summary-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .summary-group {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 0.8rem;
+        }
+        .summary-group-title {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .summary-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .summary-chip {
+            background: rgba(129, 140, 248, 0.1);
+            border: 1px solid rgba(129, 140, 248, 0.2);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text);
+            position: relative;
+        }
+        .summary-chip .remove {
+            cursor: pointer;
+            opacity: 0.4;
+            margin-left: 2px;
+            font-weight: 800;
+            font-size: 0.8rem;
+            line-height: 1;
+        }
+        .summary-chip .remove:hover { opacity: 1; color: var(--danger); }
+        .summary-chip img { width: 14px; height: 14px; image-rendering: pixelated; }
+        .summary-toggle-container {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+        .summary-toggle {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-top: none;
+            padding: 4px 20px;
+            cursor: pointer;
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: var(--primary);
+            border-radius: 0 0 10px 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .summary-toggle:hover { background: var(--bg); color: #fff; transform: translateY(2px); }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+    </style>
+</head>
+<body>
+<nav>
+    <a href="https://github.com/MathieuDorval/ORES-CORE" class="logo">ORES CORE</a>
+    <div class="nav-links">
+        <a href="registry_generator.html">Registry Generator</a>
+        <a href="ore_gen_manager.html" class="active">Ore Gen Generator</a>
+        <a href="material_reference.html">Material Reference</a>
+    </div>
+</nav>
+<header>
+    <div style="display: flex; flex-direction: column;">
+        <div style="font-size:1.8rem; font-weight:800; color:white;">Worldgen Generator</div>
+        <div style="font-size:0.8rem; color:var(--text-dim);">Configure ore density, distribution and rarity in `ores-generation.toml`.</div>
+    </div>
+    <div style="display: flex; gap: 0.8rem;">
+        <button class="btn-action" style="background: rgba(255,255,255,0.05); color:white; border:1px solid var(--border);" onclick="copyToml()">Copy TOML</button>
+        <button class="btn-action" onclick="downloadToml()">Download TOML</button>
+    </div>
+</header>
+<div style="position: relative; flex-shrink: 0;">
+    <div class="summary-bar" id="summary-bar">
+        <div class="summary-content" id="summary-content"></div>
+    </div>
+    <div class="summary-toggle-container">
+        <div class="summary-toggle" onclick="toggleSummary()">
+            WORLDGEN SUMMARY <span id="summary-arrow">▼</span>
+        </div>
+    </div>
+</div>
+<main>
+    <div class="material-layout">
+        <div class="mat-list-side">
+            <div class="search-area">
+                <input type="text" id="mat-query" placeholder="Search materials..." oninput="renderMatList()">
+                <button id="vanilla-toggle-btn" class="vanilla-toggle" onclick="toggleVanilla()" title="Toggle Vanilla Ores">
+                    VANILLA
+                </button>
+            </div>
+            <div class="mat-scroll" id="mat-list-container"></div>
+        </div>
+        <div class="mat-detail-side" id="mat-detail-area">
+            <div style="height:100%; display:flex; align-items:center; justify-content:center; color:var(--text-dim); text-align:center;">
+                <div><div style="font-size:3rem; margin-bottom:1rem;">🌍</div>Select a material to configure worldgen</div>
+            </div>
+        </div>
+    </div>
+    <div class="json-pane" id="json-pane">
+        <div class="toggle-json" id="toggle-json-btn" onclick="toggleJsonPanel()" title="Toggle TOML Preview">
+            <span id="toggle-icon">❯</span>
+        </div>
+        <div class="json-area">
+            <div style="font-size:0.75rem; font-weight:800; color:var(--primary); margin-bottom:0.4rem; letter-spacing: 0.5px;">Target: config/ores/ores-generation.toml</div>
+            <div style="font-size:0.65rem; color:var(--text-dim); margin-bottom:0.8rem; padding: 0.5rem; background: rgba(129, 140, 248, 0.1); border-radius: 6px; border-left: 3px solid var(--primary);">
+                <strong>💡 Tip:</strong> Want to modify an existing configuration? Paste the TOML file content in the area below.
+            </div>
+            <div id="toml-error-log" class="toml-error-log"></div>
+            <textarea id="toml-out" style="word-wrap: normal; white-space: pre;" spellcheck="false" oninput="parseManualToml()"></textarea>
+        </div>
+    </div>
+</main>
+<script>
+    let MATERIALS = [];
+    let VANILLA_MATERIALS = [];
+    let WORLDGEN_OPTIONS = {
+        veinTypes: ["CLASSIC", "GIANT"],
+        shapes: ["BLOB", "PLATE", "HORIZONTAL", "VERTICAL", "SCATTERED"],
+        distributions: ["UNIFORM", "TRAPEZOID", "GAUSSIAN", "TRIANGLE_HIGH", "TRIANGLE_LOW"],
+        specifics: ["NONE", "AIR_ONLY", "CAVE_ONLY", "WATER_ONLY", "LAVA_ONLY", "UNIQUE"]
+    };
+    let showVanilla = false;
+    let state = {
+        veins: [],
+        activeMat: null,
+        veinErrors: [] 
+    };
+    let AtlasMap = {};
+    function getIconHtml(m) {
+        let overlayFbk = "block/ore_overlays/" + m;
+        if (AtlasMap[overlayFbk]) {
+            return `<div class="atlas-icon" style="background-position: -${AtlasMap[overlayFbk].x}px -${AtlasMap[overlayFbk].y}px;"></div>`;
+        }
+        
+        let fbk = "item/" + m + "_ingot";
+        if (!AtlasMap[fbk]) fbk = "item/" + m + "_gem";
+        if (!AtlasMap[fbk]) fbk = "item/" + m;
+        if (!AtlasMap[fbk]) fbk = "item/iron_ingot";
+        
+        if (AtlasMap[fbk]) {
+            return `<div class="atlas-icon" style="background-position: -${AtlasMap[fbk].x}px -${AtlasMap[fbk].y}px; opacity:0.5;"></div>`;
+        }
+        return `<div class="atlas-icon" style="opacity:0.2;" title="No texture"></div>`;
+    }
+    
+    async function loadData() {
+        try {
+            const dataRes = await fetch('data.json?' + new Date().getTime());
+            const atlasRes = await fetch('atlas.json?' + new Date().getTime());
+            if (!dataRes.ok || !atlasRes.ok) throw new Error("Assets not found");
+            const data = await dataRes.json();
+            AtlasMap = await atlasRes.json();
+            MATERIALS = Object.keys(data.materials).sort();
+            VANILLA_MATERIALS = data.vanillaMaterials || ["iron", "gold", "copper", "coal", "diamond", "emerald", "lapis", "redstone", "quartz", "netherite"];
+            if (data.worldGenOptions) WORLDGEN_OPTIONS = data.worldGenOptions;
+            console.log("Ore Gen Database synced with data.json");
+            renderMatList();
+            updateSummary();
+        } catch (e) {
+            console.warn("Falling back to internal materials. Reason:", e.message);
+            MATERIALS = ["iron", "gold", "copper", "tin", "lead", "silver", "nickel", "osmium", "platinum", "zinc", "uranium"];
+            renderMatList();
+            updateSummary();
+        }
+    }
+    loadData();
+    function toggleVanilla() {
+        showVanilla = !showVanilla;
+        document.getElementById('vanilla-toggle-btn').classList.toggle('active', showVanilla);
+        renderMatList();
+    }
+    function renderMatList() {
+        const q = document.getElementById('mat-query').value.toLowerCase();
+        const container = document.getElementById('mat-list-container');
+        container.innerHTML = '';
+        const list = MATERIALS.filter(m => m.includes(q))
+                             .filter(m => showVanilla || !VANILLA_MATERIALS.includes(m));
+        list.sort((a, b) => {
+            const hasA = state.veins.some(v => v.materials.includes(a));
+            const hasB = state.veins.some(v => v.materials.includes(b));
+            if (hasA && !hasB) return -1;
+            if (!hasA && hasB) return 1;
+            return a.localeCompare(b);
+        });
+        list.forEach(m => {
+            const div = document.createElement('div');
+            const hasData = state.veins.some(v => v.materials.includes(m));
+            div.className = `mat-row ${state.activeMat === m ? 'active' : ''} ${hasData ? 'has-data' : ''}`;
+            
+            div.innerHTML = `<div style="transform: scale(1.375); transform-origin: left center; margin-right: 6px; flex-shrink: 0; width: 16px; height: 16px;">${getIconHtml(m)}</div> <span>${m.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</span>`;
+            div.onclick = () => { 
+                state.activeMat = m; 
+                const hasDataClick = state.veins.some(v => v.materials.includes(m));
+                if (!hasDataClick) {
+                    addVein(m);
+                } else {
+                    renderMatList(); 
+                    renderDetail(); 
+                }
+            };
+            container.appendChild(div);
+        });
+    }
+    function renderDetail() {
+        const area = document.getElementById('mat-detail-area');
+        const m = state.activeMat;
+        if (!m) return;
+        const matVeins = state.veins.filter(v => v.materials.includes(m));
+        area.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2rem;">
+                <h1 style="margin:0">${m.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())} GENERATION</h1>
+                <button class="btn-action" onclick="addVein('${m}')">+ ADD VEIN CONFIG</button>
+            </div>
+            <div id="vein-container">
+                ${matVeins.map((v, i) => renderVeinCard(v, i)).join('')}
+            </div>
+            ${matVeins.length === 0 ? '<div style="padding:4rem; text-align:center; color:var(--text-dim);">No generation defined for this material.</div>' : ''}
+        `;
+    }
+    function renderVeinCard(v, idx) {
+        const isGiant = v.veinType === "GIANT";
+        const veinGlobalIdx = state.veins.indexOf(v);
+        return `
+            <div class="vein-card">
+                <div class="vein-header">
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <span style="background:var(--primary); color:white; padding:4px 10px; border-radius:6px; font-weight:800; font-size:0.7rem;">${v.veinType}</span>
+                        <span style="font-weight:600; font-size:0.9rem;">Vein #${idx+1}</span>
+                    </div>
+                    <button class="delete-btn" onclick="deleteVein(${veinGlobalIdx})">REMOVE VEIN</button>
+                </div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label>Target Materials</label>
+                        <div class="multi-picker">
+                            ${v.materials.map((m, i) => `
+                                <div class="picker-tag">
+                                    ${getIconHtml(m)}
+                                    ${m}
+                                    ${v.materials.length > 1 ? `<span class="remove" onclick="removeMaterialFromVe(${veinGlobalIdx}, ${i})">×</span>` : ''}
+                                </div>
+                            `).join('')}
+                            <select class="add-picker" onchange="addMaterialToVe(${veinGlobalIdx}, this.value); this.value=''">
+                                <option value="">+ Add Material</option>
+                                ${MATERIALS.filter(m => !v.materials.includes(m)).map(m => `<option value="${m}">${m}</option>`).join('')}
+                            </select>
+                        </div>
+                        ${v.materials.length > 1 ? `
+                            <div style="margin-top:10px;">
+                                <label style="font-size:0.6rem; color:var(--primary);">Materials Ratio</label>
+                                <div class="ratio-grid">
+                                    ${v.materials.map((m, i) => `
+                                        <span style="font-size:0.75rem; opacity:0.8;">${m}</span>
+                                        <input type="number" value="${(v.materialsRatio && v.materialsRatio[i]) || 1}" min="1" oninput="updateRatio(${veinGlobalIdx}, ${i}, parseInt(this.value))">
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="input-group">
+                        <label>Vein Type</label>
+                        <select onchange="updateVein(${veinGlobalIdx}, 'veinType', this.value)">
+                            ${WORLDGEN_OPTIONS.veinTypes.map(vt => `<option value="${vt}" ${v.veinType === vt ? 'selected' : ''}>${vt}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Rarity</label>
+                        <input type="number" value="${v.rarity}" oninput="updateVein(${veinGlobalIdx}, 'rarity', parseInt(this.value))">
+                    </div>
+                    <div class="range-row">
+                        <div class="input-group ${state.veinErrors[veinGlobalIdx]?.has('minY') ? 'has-error' : ''}">
+                            <label>Min Y Range</label>
+                            <input type="number" value="${v.minY}" placeholder="Min Y" oninput="updateMinY(${veinGlobalIdx}, parseInt(this.value))">
+                        </div>
+                        <div class="input-group ${state.veinErrors[veinGlobalIdx]?.has('maxY') ? 'has-error' : ''}">
+                            <label>Max Y Range</label>
+                            <input type="number" value="${v.maxY}" placeholder="Max Y" oninput="updateMaxY(${veinGlobalIdx}, parseInt(this.value))">
+                        </div>
+                    </div>
+                    ${!isGiant ? `
+                        <div class="input-group">
+                            <label>Density (Size) <span class="optional">(optional)</span></label>
+                            <input type="number" value="${v.density || 8}" oninput="updateVein(${veinGlobalIdx}, 'density', parseInt(this.value))">
+                        </div>
+                        <div class="input-group">
+                            <label>Shape <span class="optional">(optional)</span></label>
+                            <select onchange="updateVein(${veinGlobalIdx}, 'shape', this.value)">
+                                ${WORLDGEN_OPTIONS.shapes.map(s => `<option value="${s}" ${v.shape === s ? 'selected' : ''}>${s}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Distribution <span class="optional">(optional)</span></label>
+                            <select onchange="updateVein(${veinGlobalIdx}, 'distribution', this.value)">
+                                ${WORLDGEN_OPTIONS.distributions.map(d => `<option value="${d}" ${v.distribution === d ? 'selected' : ''}>${d}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Air Exposure (0.0 - 1.0) <span class="optional">(optional)</span></label>
+                            <input type="number" step="0.1" min="0" max="1" value="${v.airExposureChance || 0}" oninput="updateVein(${veinGlobalIdx}, 'airExposureChance', parseFloat(this.value))">
+                        </div>
+                        <div class="input-group">
+                            <label>Specifics <span class="optional">(optional)</span></label>
+                            <select onchange="updateVein(${veinGlobalIdx}, 'specifics', this.value)">
+                                ${WORLDGEN_OPTIONS.specifics.map(s => `<option value="${s}" ${v.specifics === s ? 'selected' : ''}>${s}</option>`).join('')}
+                            </select>
+                        </div>
+                    ` : `
+                        <div class="input-group ${state.veinErrors[veinGlobalIdx]?.has('associatedBlock') ? 'has-error' : ''}">
+                            <label>Associated Host Block</label>
+                            <input type="text" value="${v.associatedBlock || ''}" placeholder="namespace:stone" oninput="updateVein(${veinGlobalIdx}, 'associatedBlock', this.value)">
+                        </div>
+                        <div class="input-group">
+                            <label>Ore Density (0.0 - 1.0)</label>
+                            <input type="number" step="0.01" min="0" max="1" value="${v.oreDensity || 0.1}" oninput="updateVein(${veinGlobalIdx}, 'oreDensity', parseFloat(this.value))">
+                        </div>
+                        <div class="input-group">
+                            <label>Bonus Block <span class="optional">(optional)</span></label>
+                            <input type="text" value="${v.bonusBlock || ''}" placeholder="namespace:block" oninput="updateVein(${veinGlobalIdx}, 'bonusBlock', this.value)">
+                        </div>
+                        ${v.bonusBlock ? `
+                        <div class="input-group">
+                            <label>Bonus Instance Chance</label>
+                            <input type="number" step="0.01" value="${v.bonusBlockChance || 0.02}" oninput="updateVein(${veinGlobalIdx}, 'bonusBlockChance', parseFloat(this.value))">
+                        </div>
+                        ` : ''}
+                    `}
+                    <div class="input-group">
+                        <label>Dimensions Whitelist <span class="optional">(optional) ${v.dimensionsWhitelist && v.dimensionsWhitelist.length ? '' : '⚠️'}</span></label>
+                        <div class="multi-picker">
+                            ${(v.dimensionsWhitelist || []).map((d, i) => `
+                                <div class="picker-tag">${d} <span class="remove" onclick="removeTag(${veinGlobalIdx}, 'dimensionsWhitelist', ${i})">×</span></div>
+                            `).join('')}
+                            <input type="text" placeholder="e.g. minecraft:overworld" onkeydown="if(event.key==='Enter'){addTag(${veinGlobalIdx}, 'dimensionsWhitelist', this.value); this.value='';}" style="flex:1; padding: 4px;">
+                        </div>
+                        ${(!v.dimensionsWhitelist || v.dimensionsWhitelist.length === 0) ? `<div class="warn-msg">⚠️ No whitelist: will generate in ALL dimensions</div>` : ''}
+                    </div>
+                    <div class="input-group">
+                        <label>Dimensions Blacklist <span class="optional">(optional)</span></label>
+                        <div class="multi-picker">
+                            ${(v.dimensionsBlacklist || []).map((d, i) => `
+                                <div class="picker-tag">${d} <span class="remove" onclick="removeTag(${veinGlobalIdx}, 'dimensionsBlacklist', ${i})">×</span></div>
+                            `).join('')}
+                            <input type="text" placeholder="e.g. minecraft:the_nether" onkeydown="if(event.key==='Enter'){addTag(${veinGlobalIdx}, 'dimensionsBlacklist', this.value); this.value='';}" style="flex:1; padding: 4px;">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Biomes Whitelist <span class="optional">(optional)</span></label>
+                        <div class="multi-picker">
+                            ${(v.biomesWhitelist || []).map((b, i) => `
+                                <div class="picker-tag">${b} <span class="remove" onclick="removeTag(${veinGlobalIdx}, 'biomesWhitelist', ${i})">×</span></div>
+                            `).join('')}
+                            <input type="text" placeholder="e.g. minecraft:plains" onkeydown="if(event.key==='Enter'){addTag(${veinGlobalIdx}, 'biomesWhitelist', this.value); this.value='';}" style="flex:1; padding: 4px;">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Biomes Blacklist <span class="optional">(optional)</span></label>
+                        <div class="multi-picker">
+                            ${(v.biomesBlacklist || []).map((b, i) => `
+                                <div class="picker-tag">${b} <span class="remove" onclick="removeTag(${veinGlobalIdx}, 'biomesBlacklist', ${i})">×</span></div>
+                            `).join('')}
+                            <input type="text" placeholder="e.g. minecraft:ocean" onkeydown="if(event.key==='Enter'){addTag(${veinGlobalIdx}, 'biomesBlacklist', this.value); this.value='';}" style="flex:1; padding: 4px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    function addVein(m) {
+        state.veins.push({ 
+            materials: [m], 
+            veinType: "CLASSIC", 
+            rarity: 10, 
+            density: 8, 
+            shape: "BLOB", 
+            distribution: "TRAPEZOID", 
+            minY: -64, 
+            maxY: 64, 
+            airExposureChance: 0.0, 
+            specifics: "NONE", 
+            dimensionsWhitelist: ["minecraft:overworld"] 
+        });
+        renderDetail(); renderMatList(); updateToml();
+    }
+    function deleteVein(idx) {
+        state.veins.splice(idx, 1);
+        renderDetail(); renderMatList(); updateToml();
+    }
+    function updateVein(idx, key, val) {
+        const oldVal = state.veins[idx][key];
+        state.veins[idx][key] = val;
+        if (key === 'veinType') {
+            if (val === 'GIANT' && state.veins[idx].rarity <= 20) {
+                state.veins[idx].rarity = 200;
+            } else if (val === 'CLASSIC' && state.veins[idx].rarity >= 200) {
+                state.veins[idx].rarity = 10;
+            }
+            renderDetail();
+        } else if (key === 'bonusBlock' && (!oldVal || !val)) {
+            renderDetail();
+        }
+        updateToml();
+    }
+    function updateMinY(idx, val) {
+        state.veins[idx].minY = val;
+        if (state.veins[idx].minY > state.veins[idx].maxY) {
+            state.veins[idx].maxY = val;
+            renderDetail(); 
+        }
+        updateToml();
+    }
+    function updateMaxY(idx, val) {
+        state.veins[idx].maxY = val;
+        if (state.veins[idx].maxY < state.veins[idx].minY) {
+            state.veins[idx].minY = val;
+            renderDetail(); 
+        }
+        updateToml();
+    }
+    function addMaterialToVe(idx, m) {
+        if (!m || state.veins[idx].materials.includes(m)) return;
+        state.veins[idx].materials.push(m);
+        if (!state.veins[idx].materialsRatio) {
+            state.veins[idx].materialsRatio = state.veins[idx].materials.map(() => 1);
+        } else {
+            state.veins[idx].materialsRatio.push(1);
+        }
+        renderDetail(); updateToml();
+    }
+    function removeMaterialFromVe(idx, matIdx) {
+        state.veins[idx].materials.splice(matIdx, 1);
+        if (state.veins[idx].materialsRatio) state.veins[idx].materialsRatio.splice(matIdx, 1);
+        if (state.veins[idx].materials.length <= 1) delete state.veins[idx].materialsRatio;
+        renderDetail(); updateToml();
+    }
+    function updateRatio(idx, matIdx, val) {
+        if (!state.veins[idx].materialsRatio) state.veins[idx].materialsRatio = state.veins[idx].materials.map(() => 1);
+        state.veins[idx].materialsRatio[matIdx] = val;
+        updateToml();
+    }
+    function addTag(idx, key, val) {
+        if (!val) return;
+        if (!state.veins[idx][key]) state.veins[idx][key] = [];
+        state.veins[idx][key].push(val);
+        renderDetail(); updateToml();
+    }
+    function removeTag(idx, key, tagIdx) {
+        state.veins[idx][key].splice(tagIdx, 1);
+        renderDetail(); updateToml();
+    }
+    function updateToml() {
+        let toml = "# OresCore Generation Configuration\n";
+        toml += "# Generated by Ores Core Worldgen Manager\n";
+        toml += "# Link: https://mathieudorval.github.io/ORES-CORE/tools/ore_gen_manager.html\n\n";
+        let errors = [];
+        state.veinErrors = state.veins.map(() => new Set());
+        state.veins.forEach((v, idx) => {
+            const vErrs = state.veinErrors[idx];
+            toml += "[[veins]]\n";
+            toml += `  materials = [${v.materials.map(m => `"${m}"`).join(", ")}]\n`;
+            if (v.materialsRatio && v.materialsRatio.length > 1) toml += `  materialsRatio = [${v.materialsRatio.join(", ")}]\n`;
+            toml += `  veinType = "${v.veinType}"\n`;
+            toml += `  rarity = ${v.rarity}\n`;
+            toml += `  minY = ${v.minY}\n`;
+            toml += `  maxY = ${v.maxY}\n`;
+            if (!WORLDGEN_OPTIONS.veinTypes.includes(v.veinType)) {
+                errors.push(`Vein #${idx+1}: Invalid type "${v.veinType}"`);
+                vErrs.add('veinType');
+            }
+            if (v.veinType === "CLASSIC") {
+                if (v.density) toml += `  density = ${v.density}\n`;
+                if (v.shape && v.shape !== 'BLOB') toml += `  shape = "${v.shape}"\n`;
+                if (v.distribution && v.distribution !== 'UNIFORM') toml += `  distribution = "${v.distribution}"\n`;
+                if (v.airExposureChance) toml += `  airExposureChance = ${v.airExposureChance}\n`;
+                if (v.specifics && v.specifics !== 'NONE') toml += `  specifics = "${v.specifics}"\n`;
+            } else {
+                toml += `  associatedBlock = "${v.associatedBlock || 'minecraft:stone'}"\n`;
+                toml += `  oreDensity = ${v.oreDensity || 0.1}\n`;
+                if (v.bonusBlock) {
+                    toml += `  bonusBlock = "${v.bonusBlock}"\n`;
+                    toml += `  bonusBlockChance = ${v.bonusBlockChance || 0.02}\n`;
+                }
+                if (!v.associatedBlock) {
+                    errors.push(`Vein #${idx+1}: Missing Associated Block for GIANT type`);
+                    vErrs.add('associatedBlock');
+                }
+            }
+            let dims = v.dimensionsWhitelist || [];
+            if (dims.length > 0) toml += `  dimensionsWhitelist = [${dims.map(d => `"${d}"`).join(", ")}]\n`;
+            if (v.dimensionsBlacklist && v.dimensionsBlacklist.length) toml += `  dimensionsBlacklist = [${v.dimensionsBlacklist.map(d => `"${d}"`).join(", ")}]\n`;
+            if (v.biomesWhitelist && v.biomesWhitelist.length) toml += `  biomesWhitelist = [${v.biomesWhitelist.map(b => `"${b}"`).join(", ")}]\n`;
+            if (v.biomesBlacklist && v.biomesBlacklist.length) toml += `  biomesBlacklist = [${v.biomesBlacklist.map(b => `"${b}"`).join(", ")}]\n`;
+            toml += "\n";
+            if (v.minY > v.maxY) {
+                errors.push(`Vein #${idx+1}: Min Y (${v.minY}) is greater than Max Y (${v.maxY})`);
+                vErrs.add('minY');
+                vErrs.add('maxY');
+            }
+        });
+        const cards = document.querySelectorAll('.vein-card');
+        state.veinErrors.forEach((vErrs, vIdx) => {
+            const card = cards[vIdx];
+            if (!card) return;
+            const groups = card.querySelectorAll('.input-group');
+            groups.forEach(group => {
+                const label = group.querySelector('label')?.innerText.toLowerCase() || '';
+                let hasErr = false;
+                if (label.includes('associated host block')) hasErr = vErrs.has('associatedBlock');
+                else if (label.includes('min y')) hasErr = vErrs.has('minY');
+                else if (label.includes('max y')) hasErr = vErrs.has('maxY');
+                else if (label.includes('vein type')) hasErr = vErrs.has('veinType');
+                group.classList.toggle('has-error', hasErr);
+            });
+        });
+        const out = document.getElementById('toml-out');
+        const log = document.getElementById('toml-error-log');
+        out.value = toml;
+        const validation = validateTomlContent(toml);
+        highlightTomlLines(validation.errorLineIndices);
+        if (errors.length || validation.errors.length) {
+            out.classList.add('malformed');
+            const allErrors = [...new Set([...errors, ...validation.errors])];
+            log.innerHTML = `<strong>⚠️ TOML Configuration Errors:</strong><br>${allErrors.join('<br>')}`;
+            log.classList.add('active');
+        } else {
+            out.classList.remove('malformed');
+            log.classList.remove('active');
+        }
+        updateSummary();
+    }
+    function highlightTomlLines(lineIndices) {
+        const out = document.getElementById('toml-out');
+        if (!lineIndices || lineIndices.size === 0) {
+            out.style.backgroundImage = "none"; 
+            out.style.backgroundColor = "#000"; 
+            return;
+        }
+        const lineHeight = 1.5; 
+        const padding = 1.5; 
+        let gradientParts = [`#000 ${padding}rem`];
+        let currentPos = padding;
+        const maxLine = lineIndices.size > 0 ? Math.max(...Array.from(lineIndices)) : -1;
+        for (let i = 0; i <= maxLine + 5; i++) {
+            const nextPos = currentPos + lineHeight;
+            if (lineIndices.has(i)) {
+                gradientParts.push(`rgba(251, 191, 36, 0.2) ${currentPos}rem`);
+                gradientParts.push(`rgba(251, 191, 36, 0.2) ${nextPos}rem`);
+            } else {
+                gradientParts.push(`#000 ${currentPos}rem`);
+                gradientParts.push(`#000 ${nextPos}rem`);
+            }
+            currentPos = nextPos;
+        }
+        out.style.backgroundImage = `linear-gradient(to bottom, ${gradientParts.join(', ')})`;
+        out.style.backgroundAttachment = 'local'; 
+    }
+    function validateTomlContent(text) {
+        const lines = text.split('\n');
+        let errors = [];
+        let errorLineIndices = new Set();
+        lines.forEach((line, i) => {
+            const trimmed = line.trim();
+            if (!trimmed || trimmed.startsWith('#')) return;
+            let hasError = false;
+            if (trimmed.includes(',')) {
+                const parts = trimmed.split('=');
+                if (parts.length === 2) {
+                    const value = parts[1].trim();
+                    if (/^\d+,\d+$/.test(value)) {
+                        errors.push(`Line ${i+1}: Invalid number "${value}" (use "." for decimals)`);
+                        hasError = true;
+                    }
+                }
+            }
+            if (trimmed.includes('=')) {
+                const parts = trimmed.split('=');
+                const key = parts[0].trim();
+                const rawVal = parts[1]?.trim().replace(/"/g, '') || '';
+                if (key === 'veinType') {
+                    if (rawVal && !WORLDGEN_OPTIONS.veinTypes.includes(rawVal)) {
+                        errors.push(`Line ${i+1}: Unknown veinType "${rawVal}"`);
+                        hasError = true;
+                    }
+                } else if (key === 'shape') {
+                    if (rawVal && !WORLDGEN_OPTIONS.shapes.includes(rawVal)) {
+                        errors.push(`Line ${i+1}: Unknown shape "${rawVal}"`);
+                        hasError = true;
+                    }
+                } else if (key === 'distribution') {
+                    if (rawVal && !WORLDGEN_OPTIONS.distributions.includes(rawVal)) {
+                        errors.push(`Line ${i+1}: Unknown distribution "${rawVal}"`);
+                        hasError = true;
+                    }
+                } else if (key === 'specifics') {
+                    if (rawVal && !WORLDGEN_OPTIONS.specifics.includes(rawVal)) {
+                        errors.push(`Line ${i+1}: Unknown specifics "${rawVal}"`);
+                        hasError = true;
+                    }
+                } else if (key === 'materials') {
+                    const val = parts[1]?.trim();
+                    if (val && val.startsWith('[') && val.endsWith(']')) {
+                        const mats = val.slice(1, -1).split(',').map(s => s.trim().replace(/"/g, '')).filter(s => s);
+                        mats.forEach(m => {
+                            if (MATERIALS.length > 0 && !MATERIALS.includes(m.toLowerCase())) {
+                                errors.push(`Line ${i+1}: Unknown material "${m}"`);
+                                hasError = true;
+                            }
+                        });
+                    }
+                } else {
+                    const allowed = ["materialsRatio", "rarity", "minY", "maxY", "density", "airExposureChance", "associatedBlock", "oreDensity", "bonusBlock", "bonusBlockChance", "dimensionsWhitelist", "dimensionsBlacklist", "biomesWhitelist", "biomesBlacklist"];
+                    if (!allowed.includes(key)) {
+                        errors.push(`Line ${i+1}: Unknown parameter "${key}"`);
+                        hasError = true;
+                    }
+                }
+            } else if (!trimmed.startsWith('[[veins]]')) {
+                errors.push(`Line ${i+1}: Unexpected text`);
+                hasError = true;
+            }
+            if (hasError) errorLineIndices.add(i);
+            const integerKeys = ["rarity", "minY", "maxY", "density"];
+            const floatKeys = ["airExposureChance", "oreDensity", "bonusBlockChance"];
+            if (trimmed.includes('=') && !hasError) {
+                const parts = trimmed.split('=');
+                const key = parts[0].trim();
+                const val = parts[1].trim();
+                if (integerKeys.includes(key)) {
+                    if (val === "" || isNaN(val) || val.includes('.') || val.includes(',') || val.startsWith('"')) {
+                        errors.push(`Line ${i+1}: Parameter "${key}" must be a whole number (no decimals), got "${val}"`);
+                        errorLineIndices.add(i);
+                    }
+                } else if (floatKeys.includes(key)) {
+                    const numVal = parseFloat(val.replace(',', '.'));
+                    if (val === "" || isNaN(numVal) || val.startsWith('"')) {
+                        errors.push(`Line ${i+1}: Parameter "${key}" expected a decimal number, got "${val}"`);
+                        errorLineIndices.add(i);
+                    } else if (val.includes(',')) {
+                        errors.push(`Line ${i+1}: Use "." instead of "," for decimals in "${key}"`);
+                        errorLineIndices.add(i);
+                    } else if (numVal < 0 || numVal > 1) {
+                        errors.push(`Line ${i+1}: Parameter "${key}" must be between 0.0 and 1.0, got ${numVal}`);
+                        errorLineIndices.add(i);
+                    }
+                }
+                if (["associatedBlock", "bonusBlock"].includes(key)) {
+                    const blockId = val.replace(/"/g, '');
+                    if (blockId && !blockId.includes(':')) {
+                        const isModMaterial = MATERIALS.some(m => blockId.toLowerCase().includes(m.toLowerCase()));
+                        if (!isModMaterial) {
+                            errors.push(`Line ${i+1}: Block "${blockId}" is missing a namespace (e.g. "minecraft:stone")`);
+                            errorLineIndices.add(i);
+                        }
+                    }
+                }
+            }
+        });
+        return { errors, errorLineIndices };
+    }
+    function parseManualToml() {
+        const text = document.getElementById('toml-out').value;
+        const validation = validateTomlContent(text);
+        highlightTomlLines(validation.errorLineIndices);
+        const out = document.getElementById('toml-out');
+        const log = document.getElementById('toml-error-log');
+        if (validation.errors.length) {
+            out.classList.add('malformed');
+            log.innerHTML = `<strong>⚠️ TOML Syntax Errors:</strong><br>${validation.errors.join('<br>')}`;
+            log.classList.add('active');
+        } else {
+            out.classList.remove('malformed');
+            log.classList.remove('active');
+            const blocks = text.split('[[veins]]').slice(1);
+            const newVeins = [];
+            blocks.forEach(block => {
+                const v = { materials: [], dimensionsWhitelist: [], dimensionsBlacklist: [], biomesWhitelist: [], biomesBlacklist: [] };
+                const bLines = block.split('\n');
+                bLines.forEach(line => {
+                    const match = line.match(/^\s*(\w+)\s*=\s*(.*)$/);
+                    if (match) {
+                        let key = match[1];
+                        let val = match[2].trim();
+                        if (val.startsWith('[') && val.endsWith(']')) {
+                            v[key] = val.slice(1, -1).split(',').map(s => s.trim().replace(/"/g, '')).filter(s => s);
+                            if (key === 'materialsRatio') v[key] = v[key].map(n => parseInt(n));
+                        } else if (val.startsWith('"') && val.endsWith('"')) {
+                            v[key] = val.slice(1, -1);
+                        } else {
+                            v[key] = val.includes('.') ? parseFloat(val) : parseInt(val);
+                        }
+                    }
+                });
+                if (v.materials.length) newVeins.push(v);
+            });
+            state.veins = newVeins;
+            renderMatList();
+            updateSummary();
+            if (state.activeMat) renderDetail();
+        }
+    }
+    function toggleJsonPanel() {
+        const pane = document.getElementById('json-pane');
+        const icon = document.getElementById('toggle-icon');
+        const isCollapsed = pane.classList.toggle('collapsed');
+        icon.textContent = isCollapsed ? '❮' : '❯';
+        icon.style.transform = 'rotate(0deg)'; 
+    }
+    function copyToml() {
+        const out = document.getElementById('toml-out');
+        out.select();
+        document.execCommand('copy');
+    }
+    function downloadToml() {
+        const text = document.getElementById('toml-out').value;
+        const blob = new Blob([text], { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'ores-generation.toml';
+        a.click();
+    }
+    function toggleSummary() {
+        const bar = document.getElementById('summary-bar');
+        const arrow = document.getElementById('summary-arrow');
+        const isCollapsed = bar.classList.toggle('active');
+        arrow.textContent = isCollapsed ? '▲' : '▼';
+    }
+    function updateSummary() {
+        const container = document.getElementById('summary-content');
+        container.innerHTML = '';
+        const matSet = new Set();
+        state.veins.forEach(v => v.materials.forEach(m => matSet.add(m)));
+        matSet.forEach(m => {
+            const group = document.createElement('div');
+            group.className = 'summary-group';
+            const veins = state.veins.filter(v => v.materials.includes(m));
+            group.innerHTML = `
+                <div class="summary-group-title">
+                    <div style="transform: scale(0.75); margin-right: -4px;">${getIconHtml(m)}</div>
+                    ${m.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())} (${veins.length})
+                </div>
+                <div class="summary-chips">
+                    ${veins.map((v, i) => {
+                        const globalIdx = state.veins.indexOf(v);
+                        return `
+                            <div class="summary-chip" title="Click to edit, X to delete">
+                                <span onclick="state.activeMat='${m}'; renderDetail(); renderMatList();" style="cursor:pointer;">#${veins.indexOf(v)+1}</span>
+                                <span style="opacity:0.6; font-size:0.6rem;">${v.veinType}</span>
+                                <span class="remove" onclick="deleteVein(${globalIdx})" title="Delete this vein">×</span>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+            container.appendChild(group);
+        });
+        if (matSet.size === 0) {
+            container.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:1rem; color:var(--text-dim); font-size:0.8rem;">No ores configured for generation yet.</div>';
+        }
+    }
+    function handleIconError(el, m, type) {
+        if (el.dataset.attempt === "4") return;
+        if (!el.dataset.attempt) el.dataset.attempt = "1";
+        const attempt = parseInt(el.dataset.attempt);
+        const folder = (type && type.includes('block')) ? 'block/ore_overlays/' : 'item/';
+        const p = "../common/src/main/resources/assets/ores/textures/" + folder;
+        if (attempt === 1) {
+            el.src = p + m + ".png";
+            el.dataset.attempt = "2";
+        } else if (attempt === 2) {
+            el.src = "../common/src/main/resources/assets/ores/textures/item/" + m + "_ingot.png";
+            el.dataset.attempt = "3";
+        } else if (attempt === 3) {
+            el.src = "../common/src/main/resources/assets/ores/textures/item/tin_ingot.png";
+            el.style.opacity = "0.5";
+            el.dataset.attempt = "4";
+        }
+    }
+    updateToml();
+</script>
+</body>
+</html>

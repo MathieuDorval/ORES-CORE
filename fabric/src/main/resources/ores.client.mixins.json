@@ -1,0 +1,11 @@
+{
+	"required": true,
+	"package": "ores.mathieu.mixin.client",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"OreTooltipMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

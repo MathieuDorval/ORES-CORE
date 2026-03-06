@@ -1,0 +1,368 @@
+//    ___    ____    _____   ____       ____    ___    ____    _____ 
+//   / _ \  |  _ \  | ____| / ___|     / ___|  / _ \  |  _ \  | ____|
+//  | | | | | |_) | |  _|   \___ \    | |     | | | | | |_) | |  _|  
+//  | |_| | |  _ <  | |___   ___) |   | |___  | |_| | |  _ <  | |___ 
+//   \___/  |_| \_\ |_____| |____/     \____|  \___/  |_| \_\ |_____|
+//
+// [ ORES CORE ] - Common Module
+//
+// Description: Data structure storing overriding parameters for Block types.
+// Handles properties like hardness, resistance, required tools,
+// light emissions, and block physics.
+//
+// Author: __mathieu
+// Version: 26.1.100
+//
+// License: CC BY-NC-SA 4.0 (Attribution-NonCommercial-ShareAlike)
+// This code is free to be copied, shared, and adapted under the terms 
+// of the Creative Commons NC-SA license. 
+// Commercial use is strictly prohibited.
+//
+
+package ores.mathieu.material;
+
+import net.minecraft.world.item.Rarity;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.material.PushReaction;
+import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
+import net.minecraft.world.level.material.MapColor;
+
+@SuppressWarnings("null")
+public class BlockOverride extends ItemOverride {
+
+    private SoundType sound;
+    private Integer color;
+    private Float hardness;
+    private Float resistance;
+    private String requiredTool;
+    private Integer lightLevel;
+    private String lightMode;
+    private Boolean useMaterialLight;
+    private String particleMode;
+    private Boolean useMaterialParticles;
+    private Float particleIntensity;
+    private Boolean useMaterialParticleIntensity;
+    private Boolean translucent;
+    private PushReaction pushReaction;
+    private Float redstoneFactor;
+    private Integer redstonePower;
+    private Boolean useMaterialRedstone;
+    private String gravityMode;
+    private MapColor mapColor;
+    private Float slipperiness;
+    private Boolean useMaterialSlipperiness;
+    private Float speedFactor;
+    private Boolean useMaterialSpeedFactor;
+    private Float jumpFactor;
+    private Boolean useMaterialJumpFactor;
+    private Boolean isFlammable;
+    private NoteBlockInstrument instrument;
+    private Boolean ignitedByLava;
+    private Boolean isReplaceable;
+    private Boolean noCollision;
+    private Boolean shouldDropWhenFallingHitTorch;
+
+    private Boolean canBeBeaconBase;
+
+    private BlockType parentType;
+    private Integer compressionLevel;
+
+    public BlockOverride() {}
+
+    @Override
+    public BlockOverride addCompatiblePattern(String pattern) { super.addCompatiblePattern(pattern); return this; }
+
+    @Override
+    public BlockOverride setTagPattern(String tagPattern) { super.setTagPattern(tagPattern); return this; }
+    
+    public SoundType getSound() { return sound; }
+    public BlockOverride setSound(SoundType sound) { this.sound = sound; return this; }
+
+    public Integer getColor() { return color; }
+    public BlockOverride setColor(Integer color) { this.color = color; return this; }
+
+    public Float getHardness() { return hardness; }
+    public BlockOverride setHardness(Float hardness) { this.hardness = hardness; return this; }
+
+    public Float getResistance() { return resistance; }
+    public BlockOverride setResistance(Float resistance) { this.resistance = resistance; return this; }
+
+    public String getRequiredTool() { return requiredTool; }
+    public BlockOverride setRequiredTool(String requiredTool) { this.requiredTool = requiredTool; return this; }
+
+    public Integer getLightLevel() { return lightLevel; }
+    public BlockOverride setLightLevel(Integer lightLevel) { this.lightLevel = lightLevel; return this; }
+    public BlockOverride setLightLevel() { this.lightLevel = -1; return this; }
+
+    public String getLightMode() { return lightMode; }
+    public BlockOverride setLightMode(String lightMode) { this.lightMode = lightMode; return this; }
+    public BlockOverride setLightMode(boolean useMaterial) { this.useMaterialLight = useMaterial; return this; }
+    public Boolean getUseMaterialLight() { return useMaterialLight; }
+    public BlockOverride setUseMaterialLight(Boolean useMaterialLight) { this.useMaterialLight = useMaterialLight; return this; }
+
+    public String getParticleMode() { return particleMode; }
+    public BlockOverride setParticleMode(String particleMode) { this.particleMode = particleMode; return this; }
+    public BlockOverride setParticleMode(boolean useMaterial) { this.useMaterialParticles = useMaterial; return this; }
+    public Boolean getUseMaterialParticles() { return useMaterialParticles; }
+    public BlockOverride setUseMaterialParticles(Boolean useMaterialParticles) { this.useMaterialParticles = useMaterialParticles; return this; }
+
+    public Float getParticleIntensity() { return particleIntensity; }
+    public BlockOverride setParticleIntensity(Float particleIntensity) { this.particleIntensity = particleIntensity; return this; }
+    public BlockOverride setParticleIntensity(boolean useMaterial) { this.useMaterialParticleIntensity = useMaterial; return this; }
+    public Boolean getUseMaterialParticleIntensity() { return useMaterialParticleIntensity; }
+    public BlockOverride setUseMaterialParticleIntensity(Boolean useMaterialParticleIntensity) { this.useMaterialParticleIntensity = useMaterialParticleIntensity; return this; }
+
+    public Boolean getTranslucent() { return translucent; }
+    public BlockOverride setTranslucent(Boolean translucent) { this.translucent = translucent; return this; }
+
+    public PushReaction getPushReaction() { return pushReaction; }
+    public BlockOverride setPushReaction(PushReaction pushReaction) { this.pushReaction = pushReaction; return this; }
+
+    public Float getRedstoneFactor() { return redstoneFactor; }
+    public BlockOverride setRedstoneFactor(Float redstoneFactor) { this.redstoneFactor = redstoneFactor; return this; }
+
+    public String getGravityMode() { return gravityMode; }
+    public BlockOverride setGravityMode(String gravityMode) { this.gravityMode = gravityMode; return this; }
+    public BlockOverride setGravityMode() { this.gravityMode = "AUTO"; return this; }
+
+    public MapColor getMapColor() { return mapColor; }
+    public BlockOverride setMapColor(MapColor mapColor) { this.mapColor = mapColor; return this; }
+
+    public Float getSlipperiness() { return slipperiness; }
+    public BlockOverride setSlipperiness(Float slipperiness) { this.slipperiness = slipperiness; return this; }
+    public BlockOverride setSlipperiness(boolean useMaterial) { this.useMaterialSlipperiness = useMaterial; return this; }
+    public Boolean getUseMaterialSlipperiness() { return useMaterialSlipperiness; }
+    public BlockOverride setUseMaterialSlipperiness(Boolean useMaterialSlipperiness) { this.useMaterialSlipperiness = useMaterialSlipperiness; return this; }
+
+    public Float getSpeedFactor() { return speedFactor; }
+    public BlockOverride setSpeedFactor(Float speedFactor) { this.speedFactor = speedFactor; return this; }
+    public BlockOverride setSpeedFactor(boolean useMaterial) { this.useMaterialSpeedFactor = useMaterial; return this; }
+    public Boolean getUseMaterialSpeedFactor() { return useMaterialSpeedFactor; }
+    public BlockOverride setUseMaterialSpeedFactor(Boolean useMaterialSpeedFactor) { this.useMaterialSpeedFactor = useMaterialSpeedFactor; return this; }
+
+    public Float getJumpFactor() { return jumpFactor; }
+    public BlockOverride setJumpFactor(Float jumpFactor) { this.jumpFactor = jumpFactor; return this; }
+    public BlockOverride setJumpFactor(boolean useMaterial) { this.useMaterialJumpFactor = useMaterial; return this; }
+    public Boolean getUseMaterialJumpFactor() { return useMaterialJumpFactor; }
+    public BlockOverride setUseMaterialJumpFactor(Boolean useMaterialJumpFactor) { this.useMaterialJumpFactor = useMaterialJumpFactor; return this; }
+
+    public Boolean getIsFlammable() { return isFlammable; }
+    public BlockOverride setIsFlammable(Boolean isFlammable) { this.isFlammable = isFlammable; return this; }
+    public BlockOverride setIsFlammable() { this.isFlammable = false; return this; }
+
+    public NoteBlockInstrument getInstrument() { return instrument; }
+    public BlockOverride setInstrument(NoteBlockInstrument instrument) { this.instrument = instrument; return this; }
+    public BlockOverride setInstrument() { this.instrument = null; return this; }
+
+    public Boolean getIgnitedByLava() { return ignitedByLava; }
+    public BlockOverride setIgnitedByLava(Boolean ignitedByLava) { this.ignitedByLava = ignitedByLava; return this; }
+    public BlockOverride setIgnitedByLava() { this.ignitedByLava = false; return this; }
+
+    public Boolean getIsReplaceable() { return isReplaceable; }
+    public BlockOverride setIsReplaceable(Boolean isReplaceable) { this.isReplaceable = isReplaceable; return this; }
+
+    public Boolean getNoCollision() { return noCollision; }
+    public BlockOverride setNoCollision(Boolean noCollision) { this.noCollision = noCollision; return this; }
+
+    public Integer getRedstonePower() { return redstonePower; }
+    public BlockOverride setRedstonePower(Integer redstonePower) { this.redstonePower = redstonePower; return this; }
+    public BlockOverride setRedstonePower(boolean useMaterial) { this.useMaterialRedstone = useMaterial; return this; }
+    public Boolean getUseMaterialRedstone() { return useMaterialRedstone; }
+    public BlockOverride setUseMaterialRedstone(Boolean useMaterialRedstone) { this.useMaterialRedstone = useMaterialRedstone; return this; }
+
+    public Boolean getShouldDropWhenFallingHitTorch() { return shouldDropWhenFallingHitTorch; }
+    public BlockOverride setShouldDropWhenFallingHitTorch(Boolean shouldDropWhenFallingHitTorch) { this.shouldDropWhenFallingHitTorch = shouldDropWhenFallingHitTorch; return this; }
+
+    public Boolean getCanBeBeaconBase() { return canBeBeaconBase; }
+    public BlockOverride setCanBeBeaconBase(Boolean canBeBeaconBase) { this.canBeBeaconBase = canBeBeaconBase; return this; }
+
+    public BlockType getParentType() { return parentType; }
+    public BlockOverride setParentType(BlockType parentType) { this.parentType = parentType; return this; }
+
+    public Integer getCompressionLevel() { return compressionLevel; }
+    public BlockOverride setCompressionLevel(Integer compressionLevel) { this.compressionLevel = compressionLevel; return this; }
+
+    @Override
+    public BlockOverride setNamingPattern(String namingPattern) {
+        super.setNamingPattern(namingPattern);
+        return this;
+    }
+
+    @Override
+    public BlockOverride setTagCategory(String tagCategory) {
+        super.setTagCategory(tagCategory);
+        return this;
+    }
+
+    @Override
+    public BlockOverride setRarity(Rarity rarity) {
+        super.setRarity(rarity);
+        return this;
+    }
+
+    @Override
+    public BlockOverride setMaxStackSize(Integer maxStackSize) {
+        super.setMaxStackSize(maxStackSize);
+        return this;
+    }
+
+    @Override
+    public BlockOverride setSmeltingMultiplier(Float smeltingMultiplier) {
+        super.setSmeltingMultiplier(smeltingMultiplier);
+        return this;
+    }
+
+    @Override
+    public BlockOverride setXpMultiplier(Float xpMultiplier) {
+        super.setXpMultiplier(xpMultiplier);
+        return this;
+    }
+
+    @Override
+    public BlockOverride setCanBeFireproof(Boolean canBeFireproof) {
+        super.setCanBeFireproof(canBeFireproof);
+        return this;
+    }
+
+    @Override
+    public BlockOverride setCanBeFireproof() {
+        super.setCanBeFireproof();
+        return this;
+    }
+
+    @Override
+    public BlockOverride setCanBeBeaconPayment(Boolean canBeBeaconPayment) {
+        super.setCanBeBeaconPayment(canBeBeaconPayment);
+        return this;
+    }
+
+    @Override
+    public BlockOverride setCanBeBeaconPayment() {
+        super.setCanBeBeaconPayment();
+        return this;
+    }
+
+    @Override
+    public BlockOverride setCanBePiglinLoved(Boolean canBePiglinLoved) {
+        super.setCanBePiglinLoved(canBePiglinLoved);
+        return this;
+    }
+
+    @Override
+    public BlockOverride setCanBePiglinLoved() {
+        super.setCanBePiglinLoved();
+        return this;
+    }
+
+    @Override
+    public BlockOverride setFuelFactor(Float fuelFactor) {
+        super.setFuelFactor(fuelFactor);
+        return this;
+    }
+
+    @Override
+    public BlockOverride setUseRawColor(Boolean useRawColor) {
+        super.setUseRawColor(useRawColor);
+        return this;
+    }
+
+    @Override
+    public BlockOverride setNameEN(String nameEN) {
+        super.setNameEN(nameEN);
+        return this;
+    }
+
+    @Override
+    public BlockOverride setNameFR(String nameFR) {
+        super.setNameFR(nameFR);
+        return this;
+    }
+
+    @Override
+    public BlockOverride setNameES(String nameES) {
+        super.setNameES(nameES);
+        return this;
+    }
+
+    @Override
+    public BlockOverride setNameIT(String nameIT) {
+        super.setNameIT(nameIT);
+        return this;
+    }
+
+    @Override
+    public BlockOverride setNameDE(String nameDE) {
+        super.setNameDE(nameDE);
+        return this;
+    }
+
+    @Override
+    public BlockOverride setNamePT(String namePT) {
+        super.setNamePT(namePT);
+        return this;
+    }
+
+    @Override
+    public BlockOverride setNameRU(String nameRU) {
+        super.setNameRU(nameRU);
+        return this;
+    }
+
+    @Override
+    public BlockOverride setNameZH(String nameZH) {
+        super.setNameZH(nameZH);
+        return this;
+    }
+
+    @Override
+    public BlockOverride setNameJP(String nameJP) {
+        super.setNameJP(nameJP);
+        return this;
+    }
+    @Override
+    public void applyOverrides(java.util.Map<String, String> props, java.util.Set<String> protectedKeys) {
+        super.applyOverrides(props, protectedKeys);
+        for (java.util.Map.Entry<String, String> entry : props.entrySet()) {
+            String key = entry.getKey();
+            if (protectedKeys.contains(key)) continue;
+            String val = entry.getValue();
+            try {
+                switch (key) {
+                    case "color": this.color = Integer.decode(val); break;
+                    case "hardness": this.hardness = Float.parseFloat(val); break;
+                    case "resistance": this.resistance = Float.parseFloat(val); break;
+                    case "requiredTool": this.requiredTool = val; break;
+                    case "lightLevel": this.lightLevel = Integer.parseInt(val); break;
+                    case "lightMode": this.lightMode = val; break;
+                    case "useMaterialLight": this.useMaterialLight = Boolean.parseBoolean(val); break;
+                    case "particleMode": this.particleMode = val; break;
+                    case "useMaterialParticles": this.useMaterialParticles = Boolean.parseBoolean(val); break;
+                    case "particleIntensity": this.particleIntensity = Float.parseFloat(val); break;
+                    case "useMaterialParticleIntensity": this.useMaterialParticleIntensity = Boolean.parseBoolean(val); break;
+                    case "translucent": this.translucent = Boolean.parseBoolean(val); break;
+                    case "pushReaction": this.pushReaction = PushReaction.valueOf(String.valueOf(val).toUpperCase()); break;
+                    case "redstoneFactor": this.redstoneFactor = Float.parseFloat(val); break;
+                    case "redstonePower": this.redstonePower = Integer.parseInt(val); break;
+                    case "useMaterialRedstone": this.useMaterialRedstone = Boolean.parseBoolean(val); break;
+                    case "gravityMode": this.gravityMode = val; break;
+                    case "slipperiness": this.slipperiness = Float.parseFloat(val); break;
+                    case "useMaterialSlipperiness": this.useMaterialSlipperiness = Boolean.parseBoolean(val); break;
+                    case "speedFactor": this.speedFactor = Float.parseFloat(val); break;
+                    case "useMaterialSpeedFactor": this.useMaterialSpeedFactor = Boolean.parseBoolean(val); break;
+                    case "jumpFactor": this.jumpFactor = Float.parseFloat(val); break;
+                    case "useMaterialJumpFactor": this.useMaterialJumpFactor = Boolean.parseBoolean(val); break;
+                    case "isFlammable": this.isFlammable = Boolean.parseBoolean(val); break;
+                    case "instrument": this.instrument = NoteBlockInstrument.valueOf(String.valueOf(val).toUpperCase()); break;
+                    case "ignitedByLava": this.ignitedByLava = Boolean.parseBoolean(val); break;
+                    case "isReplaceable": this.isReplaceable = Boolean.parseBoolean(val); break;
+                    case "noCollision": this.noCollision = Boolean.parseBoolean(val); break;
+                    case "shouldDropWhenFallingHitTorch": this.shouldDropWhenFallingHitTorch = Boolean.parseBoolean(val); break;
+                    case "canBeBeaconBase": this.canBeBeaconBase = Boolean.parseBoolean(val); break;
+                    case "compressionLevel": this.compressionLevel = Integer.parseInt(val); break;
+                }
+            } catch (Exception e) {
+                ores.mathieu.OresCoreCommon.LOGGER.error("[ORES CORE] Failed to apply block override '{}={}'", key, val, e);
+            }
+        }
+    }
+}
